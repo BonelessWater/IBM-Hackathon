@@ -9,3 +9,4 @@
 
 ##### Joseph Handsome
 
+https://www.ibm.com/watsonx/developer/get-started/models
