@@ -3,7 +3,7 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 import os
 
 api_key = os.getenv('WATSON_KEY')
-service_url = 'your-service-url'
+service_url = 'https://us-south.ml.cloud.ibm.com'
 
 def w_str_str(data, service_url):
     # Set up authenticator and Watson service instance
