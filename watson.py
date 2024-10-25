@@ -1,11 +1,14 @@
 from ibm_watson import AssistantV2
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 import os
+from dotenv import load_dotenv
 
-api_key = os.getenv('WATSON_KEY')
-service_url = 'https://us-south.ml.cloud.ibm.com'
+load_dotenv()
 
-def w_str_str(data, service_url):
+def w_str_str(user_input):
+    api_key = os.getenv('WATSON_KEY')
+    service_url = 'https://api.us-south.speech-to-text.watson.cloud.ibm.com'
+    
     # Set up authenticator and Watson service instance
     authenticator = IAMAuthenticator(api_key)
     assistant = AssistantV2(

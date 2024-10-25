@@ -1,2 +1,9 @@
 ibm-watson
-flask
+python-dotenv==1.0.1
+Django>=5.0.7
+django-cors-headers==4.3.1
+django-debug-toolbar==4.4.2
+django-environ==0.10.0
+requests==2.32.3
+whitenoise==6.6.0
+
