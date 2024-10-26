@@ -9,5 +9,6 @@ urlpatterns = [
     path('login/', login, name='login'),
     path('home/', home, name='home'),
     path('logout/', logout, name='logout'),
-    
+    path('process-audio/', process_audio, name='process_audio'),
+    path('watson/', watson_prompter, name='watson_prompter'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

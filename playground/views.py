@@ -1,6 +1,12 @@
 from django.conf import settings  # To access the DEBUG setting
 from django.shortcuts import render, redirect
 from .models import User
+import os
+from django.conf import settings
+from django.http import JsonResponse
+from django.http import JsonResponse
+from ibm_watson import AssistantV2
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
 # Control whether login is enforced during debug mode
 ENFORCE_LOGIN_DEBUG = False  # Change this to True to enforce login while debugging
@@ -58,3 +64,56 @@ def login(request):
 def logout(request):
     request.session.flush()  # Clear the session
     return redirect('login')
+
+
+def process_audio(request):
+    """Process the uploaded audio file and delete it after processing."""
+    if request.method == 'POST' and request.FILES.get('audio'):
+        audio_file = request.FILES['audio']
+
+        # Save the uploaded audio file temporarily
+        temp_path = os.path.join(settings.MEDIA_ROOT, audio_file.name)
+        with open(temp_path, 'wb+') as destination:
+            for chunk in audio_file.chunks():
+                destination.write(chunk)
+
+        # Process the file (for now, just print success and return True)
+        print("Audio file processed successfully!")
+
+        # Delete the file after processing
+        os.remove(temp_path)
+        print("Temporary audio file deleted.")
+
+        return JsonResponse({'success': True, 'message': 'Audio processed successfully'})
+
+    return JsonResponse({'success': False, 'message': 'No audio file uploaded'}, status=400)
+
+API_KEY = 'asd'
+
+# Initialize Watson Assistant
+authenticator = IAMAuthenticator(API_KEY)
+assistant = AssistantV2(
+    version='2023-10-25',
+    authenticator=authenticator
+)
+assistant.set_service_url(SERVICE_URL)
+
+def watson_prompter(request):
+
+    """Receive a user prompt and return a response from Watson Assistant."""
+    if request.method == 'POST':
+        user_input = request.POST.get('prompt')
+        if not user_input:
+            return JsonResponse({'success': False, 'message': 'No prompt provided'}, status=400)
+
+        # Send the prompt to Watson Assistant
+        response = assistant.message_stateless(
+            assistant_id=ASSISTANT_ID,
+            input={'text': user_input}
+        ).get_result()
+
+        # Extract the response text
+        watson_response = response['output']['generic'][0]['text']
+        return JsonResponse({'success': True, 'response': watson_response})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
