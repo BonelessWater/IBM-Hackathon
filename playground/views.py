@@ -87,33 +87,3 @@ def process_audio(request):
         return JsonResponse({'success': True, 'message': 'Audio processed successfully'})
 
     return JsonResponse({'success': False, 'message': 'No audio file uploaded'}, status=400)
-
-API_KEY = 'asd'
-
-# Initialize Watson Assistant
-authenticator = IAMAuthenticator(API_KEY)
-assistant = AssistantV2(
-    version='2023-10-25',
-    authenticator=authenticator
-)
-assistant.set_service_url(SERVICE_URL)
-
-def watson_prompter(request):
-
-    """Receive a user prompt and return a response from Watson Assistant."""
-    if request.method == 'POST':
-        user_input = request.POST.get('prompt')
-        if not user_input:
-            return JsonResponse({'success': False, 'message': 'No prompt provided'}, status=400)
-
-        # Send the prompt to Watson Assistant
-        response = assistant.message_stateless(
-            assistant_id=ASSISTANT_ID,
-            input={'text': user_input}
-        ).get_result()
-
-        # Extract the response text
-        watson_response = response['output']['generic'][0]['text']
-        return JsonResponse({'success': True, 'response': watson_response})
-
-    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)
