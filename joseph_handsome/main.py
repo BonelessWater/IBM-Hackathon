@@ -23,10 +23,12 @@ model = ModelInference(
   api_client=client,
   project_id=f"{id}",
   params = {
-      "max_new_tokens": 100
+      "max_new_tokens": 1000
   }
 )
 
-prompt = 'How far is Paris from Bangalore?'
-print(model.generate(prompt))
-print(model.generate_text(prompt))
+prompt = 'Give me hospitals near Miami'
+#print(model.generate(prompt))
+h_list = model.generate_text(prompt)
+final = model.generate_text("take the following list and make an html <table> element:\n"+h_list)
+print(final)
