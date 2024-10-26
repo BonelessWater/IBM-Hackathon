@@ -7,7 +7,7 @@ urlpatterns = [
 
     path('signup/', signup, name='signup'),
     path('login/', login, name='login'),
-    path('home/', home, name='home'),
+    path('', home, name='home'),
     path('logout/', logout, name='logout'),
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
