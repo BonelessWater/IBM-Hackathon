@@ -23,7 +23,11 @@ model = ModelInference(
   api_client=client,
   project_id=f"{id}",
   params = {
-      "max_new_tokens": 8000
+      "max_new_tokens": 8000,
+      #"length_penalty": {
+          #"decay_factor": 2.3,
+          #"start_index": 20
+      #}
   }
 )
 
@@ -45,4 +49,3 @@ Ensure:
 Generate a CSV of the 5 closest hospital facilities near ZIP code 33019 (Hialeah) using the information provided in the CSV file."""
 
 #print(model.generate(prompt))
-print(model.generate_text(prompt))
