@@ -1,0 +1,57 @@
+<!-- base.html -->
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Disaster Prevention Hub</title>
+    <link rel="stylesheet" href="{% static 'css/materialize.min.css' %}">
+    <script src="{% static 'js/materialize.min.js' %}" defer></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav>
+        <div class="nav-wrapper blue">
+            <a href="#" class="brand-logo center">AI Disaster Hub</a>
+            <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="#">Prevention Tips</a></li>
+                <li><a href="#">Emergency Contacts</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="page-footer blue darken-2">
+        <div class="container">
+            <div class="row">
+                <div class="col l6 s12">
+                    <h5 class="white-text">AI Disaster Prevention Hub</h5>
+                    <p class="grey-text text-lighten-4">Providing reliable information and resources during natural disasters.</p>
+                </div>
+                <div class="col l4 offset-l2 s12">
+                    <h5 class="white-text">Links</h5>
+                    <ul>
+                        <li><a class="grey-text text-lighten-3" href="#">Resources</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#">Support</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#">Contact Us</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                © 2024 AI Disaster Hub
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
