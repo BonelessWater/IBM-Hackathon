@@ -8,25 +8,41 @@
         respond to, and recover from natural disasters.
     </p>
 
+    <!-- Prevention Guidelines and Emergency Resources -->
     <div class="row">
+        <!-- Prevention Guidelines Card -->
         <div class="col s12 m6">
-            <div class="card">
+            <div class="card blue darken-3">
                 <div class="card-content white-text">
                     <span class="card-title">Prevention Guidelines</span>
-                    <p>Learn how to reduce risks and prepare yourself for potential natural disasters 
-                       through our AI-guided prevention tips.</p>
+                    <p>Reduce risks by following best practices for various natural disasters. 
+                        Prepare yourself with practical tips and tools guided by AI insights.</p>
+                    <ul>
+                        <li>- Create emergency kits with essential supplies.</li>
+                        <li>- Know evacuation routes and safety zones in your area.</li>
+                        <li>- Secure your home to withstand natural hazards.</li>
+                        <li>- Stay informed with weather and disaster alerts.</li>
+                    </ul>
                 </div>
                 <div class="card-action">
-                    <a href="#" class="white-text">Learn More</a>
+                    <a href="{% url 'prevention' %}" class="white-text">Learn More</a>
                 </div>
             </div>
         </div>
 
+        <!-- Emergency Resources Card -->
         <div class="col s12 m6">
-            <div class="card">
+            <div class="card red darken-3">
                 <div class="card-content white-text">
                     <span class="card-title">Emergency Resources</span>
-                    <p>Access critical resources and contact emergency responders when a disaster strikes.</p>
+                    <p>Get access to essential resources when disaster strikes. Connect with emergency responders, 
+                        shelters, and medical aid centers in real-time.</p>
+                    <ul>
+                        <li>- Contact emergency services with one tap.</li>
+                        <li>- Locate nearby shelters and medical centers.</li>
+                        <li>- Access food, water, and supply distribution points.</li>
+                        <li>- Get mental health support and counseling services.</li>
+                    </ul>
                 </div>
                 <div class="card-action">
                     <a href="{% url 'resources' %}" class="white-text">Find Resources</a>

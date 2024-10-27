@@ -10,7 +10,7 @@ urlpatterns = [
     path('logout/', logout, name='logout'),
     path('chatbot_message/', chatbot_message, name='chatbot_message'), 
     path('resources/', resources, name='resources'),
-
+    path('prevention/', prevention, name='prevention'),
     
 ]
 
