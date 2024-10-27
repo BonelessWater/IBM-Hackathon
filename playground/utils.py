@@ -9,44 +9,97 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from dotenv import load_dotenv
 import os
 
-def fetch_and_log_emails():
-    IMAP_SERVER = 'imap.gmail.com'
-    EMAIL_ACCOUNT = 'your-email@example.com'
-    PASSWORD = 'your-password'
+import logging
 
-    mail = imaplib2.IMAP4_SSL(IMAP_SERVER)
-    mail.login(EMAIL_ACCOUNT, PASSWORD)
-    mail.select("inbox")
+logger = logging.getLogger(__name__)
 
-    status, messages = mail.search(None, 'UNSEEN')
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
-    for num in messages[0].split():
-        status, data = mail.fetch(num, '(RFC822)')
-        raw_email = data[0][1]
-        parsed_email = email.message_from_bytes(raw_email)
+SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
 
-        subject, encoding = decode_header(parsed_email['Subject'])[0]
-        if isinstance(subject, bytes):
-            subject = subject.decode(encoding or 'utf-8')
+def get_emails():
+  """Shows basic usage of the Gmail API.
+  Lists the user's Gmail labels.
+  """
+  creds = None
+  # The file token.json stores the user's access and refresh tokens, and is
+  # created automatically when the authorization flow completes for the first
+  # time.
+  if os.path.exists("token.json"):
+    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+  # If there are no (valid) credentials available, let the user log in.
+  if not creds or not creds.valid:
+    if creds and creds.expired and creds.refresh_token:
+      creds.refresh(Request())
+    else:
+      flow = InstalledAppFlow.from_client_secrets_file(
+          "credentials.json", SCOPES
+      )
+      creds = flow.run_local_server(port=0)
+    # Save the credentials for the next run
+    with open("token.json", "w") as token:
+      token.write(creds.to_json())
+  user_id = 'me'
+  query = 'is:unread'
+  try:
+    # Call the Gmail API
+    service = build("gmail", "v1", credentials=creds)
+    results = service.users().messages().list(userId=user_id, q=query).execute()
+    messages = results.get("messages", [])
 
-        email_address = parsed_email['From']
-        body = ""
-
-        if parsed_email.is_multipart():
-            for part in parsed_email.walk():
-                if part.get_content_type() == "text/plain":
-                    body = part.get_payload(decode=True).decode()
-                    break
-        else:
-            body = parsed_email.get_payload(decode=True).decode()
+    if not messages:
+      return {}
+    parsed_messages = {}
+    for msg in messages:
+        msg_id = msg['id']
+        msg_data = service.users().messages().get(userId='me', id=msg_id).execute()
+        msg_subject = None
+        msg_from = None
         
-        body = body_translate(body)
+        for header in msg_data['payload']['headers']:
+            if header['name'] == 'Subject':
+                msg_subject = header['value']
+            if header['name'] == 'From':
+                msg_from = str(header['value'])
+                msg_from = msg_from[msg_from.find("<")+1:-1]
+                
+        #print(f'{msg_from}')
+        #print(f'{msg_subject}')
+        parsed_messages[msg_from] = msg_subject
+        #print('---')
 
-        EmailLog.objects.create(email_address=email_address, email_body=body)
 
-    mail.logout()
+        # Modify the message to remove the UNREAD label
+        service.users().messages().modify(
+            userId=user_id,
+            id=msg_id,
+            body={'removeLabelIds': ['UNREAD']}
+        ).execute()
 
-def body_translate():
+    return parsed_messages
+
+  except HttpError as error:
+    # TODO(developer) - Handle errors from gmail API.
+    print(f"An error occurred: {error}")
+    return {}
+
+def fetch_and_log_emails():
+    msgs = get_emails()
+
+    for key, value in msgs.items():
+        logger.info(key+":"+value)
+        print("-------------------------------")
+        print(key+":"+value)
+        print("-------------------------------")
+        value = body_translate(value)
+        EmailLog.objects.create(email_address=key, email_body=value)
+
+
+def body_translate(user_input):
 
     # Load environment variables
     load_dotenv()
@@ -71,9 +124,6 @@ def body_translate():
 
     # Initialize sentiment analyzer
     sentiment_analyzer = SentimentIntensityAnalyzer()
-
-    # User input
-    user_input = "I can help people"
 
     # Construct the prompt for Watson
     prompt = f"""
