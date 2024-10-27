@@ -4,7 +4,7 @@ import os
 
 load_dotenv()
 
-def available_gas_stations(address, latitude, longitude, fuel_type="ALL") :
+def available_gas_stations(address: str, latitude: int, longitude: int, fuel_type="all"):
     api_key = os.getenv("FUEL_OUTAGE_API_KEY")
     service_url = f"https://developer.nrel.gov/api/alt-fuel-stations/v1/nearest.json?api_key={api_key}&fuel_type={fuel_type}&radius=5&status=E&acces=public"
     if len(address) > 0:
@@ -16,21 +16,28 @@ def available_gas_stations(address, latitude, longitude, fuel_type="ALL") :
     stations = []
     if response.status_code == 200: 
         data = response.json()
-
         if "fuel_stations" in data:
+            
             for station in data["fuel_stations"]:
                 name_station=station.get("station_name", "N/A")
                 latitude_station= station.get("latitude", "N/A")
                 longitude_station=station.get("longitude", "N/A")
-                distance_station=distance_addresses(origin_address=(latitude, longitude), destination_address=(latitude_station, longitude_station))
-                fuel=station.get("fuel_type_code", "N/A")
-                stations.append({"name": name_station, "latitude": latitude_station, "longitude":longitude_station, "fuel_type":fuel, "distance":distance_station})
+                add=True
+                for s in stations:
+                    if abs(latitude_station - s['latitude']) < 0.001 and abs(longitude_station - s['longitude']) < 0.0008:
+                        add=False
+                if add:
+                    distance_station=distance_addresses(coordinates_origin=(latitude, longitude), coordinates_destination=(latitude_station, longitude_station))
+                    address_station=station.get("street_address", "N/A")
+                    if address_station == "N/A":
+                        address_station = latlong_to_location(latitude_station, longitude_station)
+                    fuel=station.get("fuel_type_code", "N/A")
+                    stations.append({"name": name_station, "address": address_station, "latitude": latitude_station, "longitude":longitude_station,  "distance":distance_station, "fuel_type":fuel})
             return stations
     return stations
 
 
-
-def hospital_finder(latitude, longitude):
+def hospital_finder(latitude: int, longitude: int):
     location = f"{latitude}, {longitude}"
     api_key = os.getenv("GOOGLE_PLACES_API_KEY")
     place = "hospital"
@@ -45,14 +52,15 @@ def hospital_finder(latitude, longitude):
             hospital_name = result.get("name", "N/A")
             hospital_latitude = result['geometry']['location'].get("lat", "N/A")
             hospital_longitude = result['geometry']['location'].get("lng", "N/A")
-            hospital_open = result["opening_hours"].get("open_now", "N/A")
             hospital_distance = distance_addresses(origin_address=(latitude, longitude), destination_address=(hospital_latitude, hospital_longitude))
-            hospital = {"name": hospital_name, "latitude": hospital_latitude, "longitude": hospital_longitude, "open": hospital_open, "distance": hospital_distance}
+            hospital_address = latlong_to_location(hospital_latitude, hospital_longitude)
+            hospital = {"name": hospital_name, "address": hospital_address, "distance": hospital_distance}
             hospitals.append(hospital)
         return hospitals
     return None
 
-def shelter_finnder(address, latitude, longitude, wheelchair_accesible=False):
+
+def shelter_finnder(address: str, latitude: int, longitude: int, wheelchair_accesible=False) -> list:
     # doesnt need an api key
     service_url = f"https://gis.fema.gov/arcgis/rest/services/NSS/OpenShelters/MapServer/0/query?where="
     q_sep = f"%20%3D%20"
@@ -87,13 +95,20 @@ def shelter_finnder(address, latitude, longitude, wheelchair_accesible=False):
             return shelters
     return None
 
-# Possible future implementation, but requires geocoding API, check if watson has one
-'''
-def location_to_latlong(address, city):
-    os.getenv()
-'''
 
-def distance_addresses(origin_address="", destination_address="", coordinates_origin=(-10000, -10000), coordinates_destination=(-1000000, -100000)):
+def latlong_to_location(latitude: int, longitude: int) -> str:
+    api_key = os.getenv("GOOGLE_PLACES_API_KEY")
+
+    service_url = f"https://maps.googleapis.com/maps/api/geocode/json"
+    service_url += f"?latlng={latitude},{longitude}&key={api_key}"
+
+    response = requests.get(service_url)
+    if response.status_code == 200:
+        data = response.json()
+        return data['resutlts'][0]['formatted_address']
+
+
+def distance_addresses(origin_address="", destination_address="", coordinates_origin=(-10000, -10000), coordinates_destination=(-1000000, -100000)) -> str:
     api_key = os.getenv("GOOGLE_PLACES_API_KEY")
 
     service_url = f"https://maps.googleapis.com/maps/api/distancematrix/json"
@@ -102,6 +117,10 @@ def distance_addresses(origin_address="", destination_address="", coordinates_or
     if -90 <= o_lat <= 90 and -180 <= o_long <= 180 and -90 <= o_lat <= 90 and -180 <= o_long <= 180:
         service_url += f"?destinations={d_lat}%2C{d_long}&origins={o_lat}%2C{o_long}"
     elif len(origin_address) > 0 and len(destination_address) > 0:
+        origin_address.replace(" ", "%20")
+        origin_address.replace(",","%2C")
+        destination_address.replace(" ", "%20")
+        destination_address.replace(",", "%2C")
         service_url += f"?destinations={destination_address}&origins={origin_address}"
     service_url += f"&units=imperial&key={api_key}"
 
