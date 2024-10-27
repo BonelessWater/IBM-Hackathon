@@ -87,7 +87,7 @@ def shelter_finnder(address: str, latitude: int, longitude: int, wheelchair_acce
     if response.status_code == 200:
         data = response.json()
         if 'features' in data:
-            for shelter in data['features']: # works, but details to be discussed
+            for shelter in data['features']: 
                 shelter_name = shelter.get("shelter_name", "N/A")
                 shelter_address = shelter.get("address", "N/A")
                 shelter_distance = distance_addresses(address, shelter_address)
