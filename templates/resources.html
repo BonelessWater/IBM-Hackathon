@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h3 class="center-align">Emergency Resources Near You</h3>
+    <p class="flow-text center-align">
+        Below is a list of the nearest shelters, hospitals, and gas stations to assist you in emergencies.
+    </p>
+
+    <!-- Resources Table -->
+    <table class="highlight centered">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Distance (miles)</th>
+                <th>Contact</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Shelters -->
+            <tr>
+                <td colspan="5" class="blue white-text center-align">Shelters</td>
+            </tr>
+            {% for shelter in shelters %}
+            <tr>
+                <td>Shelter</td>
+                <td>{{ shelter.name }}</td>
+                <td>{{ shelter.address }}</td>
+                <td>{{ shelter.distance }}</td>
+                <td>{{ shelter.contact }}</td>
+            </tr>
+            {% endfor %}
+
+            <!-- Hospitals -->
+            <tr>
+                <td colspan="5" class="red white-text center-align">Hospitals</td>
+            </tr>
+            {% for hospital in hospitals %}
+            <tr>
+                <td>Hospital</td>
+                <td>{{ hospital.name }}</td>
+                <td>{{ hospital.address }}</td>
+                <td>{{ hospital.distance }}</td>
+                <td>{{ hospital.contact }}</td>
+            </tr>
+            {% endfor %}
+
+            <!-- Gas Stations -->
+            <tr>
+                <td colspan="5" class="green white-text center-align">Gas Stations</td>
+            </tr>
+            {% for gas_station in gas_stations %}
+            <tr>
+                <td>Gas Station</td>
+                <td>{{ gas_station.name }}</td>
+                <td>{{ gas_station.address }}</td>
+                <td>{{ gas_station.distance }}</td>
+                <td>{{ gas_station.contact }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

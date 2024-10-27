@@ -25,14 +25,13 @@
 
     <style>
         :root {
-            --primary-color: #81d4fa;  /* Light Blue */
-            --dark-color: #01579b;  /* Deep Blue */
-            --light-background: #f9f9f9;  /* Light White Background */
+            --primary-color: #81d4fa;
+            --dark-color: #01579b;
+            --light-background: #f9f9f9;
             --white-text: white;
             --black-text: black;
         }
 
-        /* General Styles */
         body {
             background-color: var(--light-background);
             color: var(--black-text);
@@ -42,7 +41,6 @@
             margin: 0;
         }
 
-        /* Navbar */
         nav {
             background-color: var(--dark-color);
             display: flex;
@@ -81,7 +79,6 @@
             color: var(--primary-color);
             font-size: 1.2rem;
             text-decoration: none;
-            font-family: 'Roboto', sans-serif;
         }
 
         ul#nav-mobile li a:hover {
@@ -112,23 +109,20 @@
             background-color: var(--primary-color);
         }
 
-        /* Chatbot UI */
         .chat-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
+            width: 100%;
+            max-width: 600px;
+            margin: 50px auto;
             background-color: var(--white-text);
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             border-radius: 10px;
-            overflow: hidden;
         }
 
         .chat-header {
             background-color: var(--dark-color);
             padding: 10px;
             color: var(--white-text);
-            font-weight: bold;
+            text-align: center;
         }
 
         .chat-messages {
@@ -163,7 +157,6 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
     <nav>
         <div class="logo-container">
             <img src="{% static 'img/favicon.webp' %}" alt="ByteStorm Logo">
@@ -173,7 +166,7 @@
         <ul id="nav-mobile">
             <li><a href="{% url 'home' %}">Home</a></li>
             <li><a href="#">Prevention Tips</a></li>
-            <li><a href="#">Emergency Contacts</a></li>
+            <li><a href="{% url 'resources' %}">Emergency Resources</a></li>
             <li>
                 <a href="{% url 'logout' %}" class="btn-flat white-text">
                     <i class="material-icons left">exit_to_app</i>Logout
@@ -182,29 +175,16 @@
         </ul>
     </nav>
 
-    <!-- Main Content -->
     <main>
         {% block content %}
         {% endblock %}
     </main>
 
-    <!-- Chatbot -->
-    <div class="chat-container">
-        <div class="chat-header">Chat with ByteBot</div>
-        <div class="chat-messages" id="chat-messages"></div>
-        <div class="chat-input-container">
-            <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." />
-            <button class="chat-send-btn" id="chat-send-btn">Send</button>
-        </div>
-    </div>
-
-    <!-- Footer -->
     <footer>
         <div class="container">
             <p>&copy; 2024 ByteStorm - Providing reliable information during natural disasters.</p>
         </div>
     </footer>
-
     <script>
         const messages = document.getElementById('chat-messages');
         const input = document.getElementById('chat-input');

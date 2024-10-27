@@ -24,7 +24,7 @@ PROJECT_ID = os.getenv('PROJECT_ID')
 def login_required(view_func):
     def wrapper(request, *args, **kwargs):
         # If in DEBUG mode, skip login check
-        if settings.DEBUG:
+        if not settings.DEBUG:
             logger.info("DEBUG mode enabled, bypassing login for %s", request.path)
             return view_func(request, *args, **kwargs)
 
@@ -162,3 +162,38 @@ def chatbot_message(request):
             return JsonResponse({'error': 'An error occurred while communicating with Watson.'}, status=500)
 
     return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+def resources(request):
+    # Mock data for shelters, hospitals, and gas stations
+    shelters = [
+        {'name': 'Gainesville Shelter A', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
+        {'name': 'Gainesville Shelter B', 'address': '5678 Safe Haven St', 'distance': 2.1, 'contact': '352-987-6543'},
+        {'name': 'Gainesville Shelter C', 'address': '4321 Shelter Ct', 'distance': 2.5, 'contact': '352-555-1212'},
+        {'name': 'Gainesville Shelter D', 'address': '9101 Refuge Ln', 'distance': 3.0, 'contact': '352-444-3333'},
+        {'name': 'Gainesville Shelter E', 'address': '2020 Safety Ave', 'distance': 3.8, 'contact': '352-111-2222'},
+    ]
+
+    hospitals = [
+        {'name': 'UF Health Shands Hospital', 'address': '1600 SW Archer Rd', 'distance': 1.1, 'contact': '352-265-0111'},
+        {'name': 'North Florida Regional Medical', 'address': '6500 W Newberry Rd', 'distance': 3.5, 'contact': '352-333-4000'},
+        {'name': 'VA Medical Center', 'address': '1601 SW Archer Rd', 'distance': 1.2, 'contact': '352-376-1611'},
+        {'name': 'Gainesville Urgent Care', 'address': '9200 NW 39th Ave', 'distance': 4.5, 'contact': '352-332-1890'},
+        {'name': 'Alachua General Hospital', 'address': '701 NW 1st St', 'distance': 2.8, 'contact': '352-338-0022'},
+    ]
+
+    gas_stations = [
+        {'name': 'Shell Gas Station', 'address': '1001 NW 13th St', 'distance': 1.5, 'contact': '352-378-0222'},
+        {'name': 'Chevron', 'address': '2002 SW Archer Rd', 'distance': 1.8, 'contact': '352-123-4567'},
+        {'name': 'BP Gas', 'address': '3003 NW 6th St', 'distance': 2.2, 'contact': '352-444-5555'},
+        {'name': 'Circle K', 'address': '4004 SW 20th Ave', 'distance': 3.1, 'contact': '352-555-6666'},
+        {'name': 'Wawa', 'address': '5005 University Ave', 'distance': 2.7, 'contact': '352-777-8888'},
+    ]
+
+    context = {
+        'shelters': shelters,
+        'hospitals': hospitals,
+        'gas_stations': gas_stations,
+    }
+
+    return render(request, 'resources.html', context)
+

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     <h3 class="center-align">Welcome to ByteStorm</h3>
-    <p class="flow-text">
+    <p class="flow-text center-align">
         This platform provides essential resources, real-time alerts, and guidelines to help you prepare for, 
         respond to, and recover from natural disasters.
     </p>
@@ -29,9 +29,19 @@
                     <p>Access critical resources and contact emergency responders when a disaster strikes.</p>
                 </div>
                 <div class="card-action">
-                    <a href="#" class="white-text">Find Resources</a>
+                    <a href="{% url 'resources' %}" class="white-text">Find Resources</a>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Chatbot Section -->
+    <div class="chat-container">
+        <div class="chat-header">Chat with ByteBot</div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-container">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." />
+            <button class="chat-send-btn" id="chat-send-btn">Send</button>
         </div>
     </div>
 </div>
