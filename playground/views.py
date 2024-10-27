@@ -6,11 +6,13 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from dotenv import load_dotenv
 from ibm_watsonx_ai import APIClient, Credentials
+from ibm_watsonx_ai.client import ibm_watsonx_ai
 from ibm_watsonx_ai.foundation_models import ModelInference
 from django.conf import settings
 from .models import User, InventoryItem
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import IntegrityError
+from locate_nearby_resources import available_gas_stations, shelter_finnder, hospital_finder, location_to_latlong
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -115,7 +117,7 @@ def chatbot_message(request):
     if request.method == 'POST':
         try:
             # Initialize Watson ModelInference inside the function
-            credentials = Credentials(
+            credentials = ibm_watsonx_ai.Credentials(
                 url="https://us-south.ml.cloud.ibm.com",
                 api_key=API_KEY,
             )
@@ -230,28 +232,51 @@ def update_user_state(request):
             return redirect('home')
     return JsonResponse({'error': 'Invalid state'}, status=400)
 def resources(request):
-    """Display resources and manage inventory."""
-    user = request.user  # Get the user object
-    user_state = user.state if user.is_authenticated else 'neither'  # Safely access state
-
-    if request.method == 'POST' and user.is_authenticated:
-        if user_state == 'helper':
-            # Add inventory
-            item_name = request.POST.get('item_name')
-            quantity = int(request.POST.get('quantity', 0))
-            if item_name and quantity > 0:
-                InventoryItem.objects.create(name=item_name, quantity=quantity)
-        elif user_state == 'help':
-            # Request inventory
-            item_id = request.POST.get('item_id')
-            item = get_object_or_404(InventoryItem, id=item_id)
-            if item.quantity > 0:
-                item.quantity -= 1
-                item.save()
-
-    # Retrieve all inventory items
-    inventory_items = InventoryItem.objects.all()
-
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    address = logger.info("User address: %s", user.address)
+    lat, lng = location_to_latlong(address)
+    
+    shelter_data = shelter_finnder(address, lat, lng)
+    shelters = []
+    for shelter in shelter_data[:5]:
+        shelters.append({"name": shelter['name'], "address": shelter["address"], "distance": shelter["distance"]})
+    
+    '''
+    shelters = [
+        {'name': 'Gainesville S', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
+        {'name': 'Gainesville Shelter B', 'address': '5678 Safe Haven St', 'distance': 2.1, 'contact': '352-987-6543'},
+        {'name': 'Gainesville Shelter C', 'address': '4321 Shelter Ct', 'distance': 2.5, 'contact': '352-555-1212'},
+        {'name': 'Gainesville Shelter D', 'address': '9101 Refuge Ln', 'distance': 3.0, 'contact': '352-444-3333'},
+        {'name': 'Gainesville Shelter E', 'address': '2020 Safety Ave', 'distance': 3.8, 'contact': '352-111-2222'},
+    ]
+    '''
+    hospital_data = hospital_finder(lat,lng)
+    hospitals = []
+    for hospital in hospital_data[:5]:
+        hospitals.append({"name": hospital["name"], "address": hospital["address"], "distance": hospital["distance"]})
+    '''""
+    hospitals = [
+        {'name': 'UF Health Shands Hospital', 'address': '1600 SW Archer Rd', 'distance': 1.1, 'contact': '352-265-0111'},
+        {'name': 'North Florida Regional Medical', 'address': '6500 W Newberry Rd', 'distance': 3.5, 'contact': '352-333-4000'},
+        {'name': 'VA Medical Center', 'address': '1601 SW Archer Rd', 'distance': 1.2, 'contact': '352-376-1611'},
+        {'name': 'Gainesville Urgent Care', 'address': '9200 NW 39th Ave', 'distance': 4.5, 'contact': '352-332-1890'},
+        {'name': 'Alachua General Hospital', 'address': '701 NW 1st St', 'distance': 2.8, 'contact': '352-338-0022'},
+    ]
+    '''
+    gas_station_data = available_gas_stations(address, lat, lng)
+    gas_stations = []
+    for gas_station in gas_station_data[:5]:
+        gas_stations.append({"name": gas_station["name"], "address": gas_station["address"], "distance": gas_station["distance"], "fuel_type": gas_station["fuel_type"]})
+    '''
+    gas_stations = [
+        {'name': 'Shell Gas Station', 'address': '1001 NW 13th St', 'distance': 1.5, 'contact': '352-378-0222'},
+        {'name': 'Chevron', 'address': '2002 SW Archer Rd', 'distance': 1.8, 'contact': '352-123-4567'},
+        {'name': 'BP Gas', 'address': '3003 NW 6th St', 'distance': 2.2, 'contact': '352-444-5555'},
+        {'name': 'Circle K', 'address': '4004 SW 20th Ave', 'distance': 3.1, 'contact': '352-555-6666'},
+        {'name': 'Wawa', 'address': '5005 University Ave', 'distance': 2.7, 'contact': '352-777-8888'},
+    ]
+    '''
     context = {
         'inventory_items': inventory_items,
         'user_state': user_state,
