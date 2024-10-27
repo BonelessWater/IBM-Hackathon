@@ -4,15 +4,13 @@ import os
 
 load_dotenv()
 
-def available_gas_stations(location="",latitude=-10000, longitude=-10000, zip=-10000, fuel_type="ALL") :
+def available_gas_stations(address, latitude, longitude, fuel_type="ALL") :
     api_key = os.getenv("FUEL_OUTAGE_API_KEY")
     service_url = f"https://developer.nrel.gov/api/alt-fuel-stations/v1/nearest.json?api_key={api_key}&fuel_type={fuel_type}&radius=5&status=E&acces=public"
-    if len(location) > 0:
-        service_url += f"&location={location}"
+    if len(address) > 0:
+        service_url += f"&location={address}"
     elif -90 <= latitude <= 90 and -180 <= longitude <= 180:
         service_url += f"&longitude={longitude}&latitude={latitude}"
-    elif zip:
-        service_url = f"&zip={zip}"
     response = requests.get(service_url)
 
     stations = []
@@ -21,17 +19,18 @@ def available_gas_stations(location="",latitude=-10000, longitude=-10000, zip=-1
 
         if "fuel_stations" in data:
             for station in data["fuel_stations"]:
-                name=station.get("station_name", "N/A")
+                name_station=station.get("station_name", "N/A")
                 latitude_station= station.get("latitude", "N/A")
                 longitude_station=station.get("longitude", "N/A")
+                distance_station=distance_addresses(origin_address=(latitude, longitude), destination_address=(latitude_station, longitude_station))
                 fuel=station.get("fuel_type_code", "N/A")
-                stations.append({"name": name, "latitude": latitude_station, "longitude":longitude_station, "fuel_type":fuel})
+                stations.append({"name": name_station, "latitude": latitude_station, "longitude":longitude_station, "fuel_type":fuel, "distance":distance_station})
             return stations
     return stations
 
 
 
-def hospitals(latitude, longitude):
+def hospital_finder(latitude, longitude):
     location = f"{latitude}, {longitude}"
     api_key = os.getenv("GOOGLE_PLACES_API_KEY")
     place = "hospital"
@@ -40,19 +39,20 @@ def hospitals(latitude, longitude):
 
     response = requests.get(service_url)
     if response.status_code == 200:
-        nearest_hospitals = []
+        hospitals = []
         data = response.json()
         for result in data['results']:
             hospital_name = result.get("name", "N/A")
             hospital_latitude = result['geometry']['location'].get("lat", "N/A")
             hospital_longitude = result['geometry']['location'].get("lng", "N/A")
             hospital_open = result["opening_hours"].get("open_now", "N/A")
-            hospital = {"name": hospital_name, "latitude": hospital_latitude, "longitude": hospital_longitude, "open": hospital_open}
-            nearest_hospitals.append(hospital)
-        return nearest_hospitals
+            hospital_distance = distance_addresses(origin_address=(latitude, longitude), destination_address=(hospital_latitude, hospital_longitude))
+            hospital = {"name": hospital_name, "latitude": hospital_latitude, "longitude": hospital_longitude, "open": hospital_open, "distance": hospital_distance}
+            hospitals.append(hospital)
+        return hospitals
     return None
 
-def shelters(city="", state="", latitude=-100000, longitude=-100000, zip=-10000, wheelchair_accesible=False):
+def shelter_finnder(address, latitude, longitude, wheelchair_accesible=False):
     # doesnt need an api key
     service_url = f"https://gis.fema.gov/arcgis/rest/services/NSS/OpenShelters/MapServer/0/query?where="
     q_sep = f"%20%3D%20"
@@ -66,12 +66,6 @@ def shelters(city="", state="", latitude=-100000, longitude=-100000, zip=-10000,
         
         service_url += f"%20(latitude{q_sep}{min_latitude}%20OR%20latitude{q_sep}{max_latitude})%20{q_and}"
         service_url += f"%20(longitude{q_sep}{min_longitude}%20OR%20longitude{q_sep}{max_longitude})%20"
-    elif len(city) > 0:
-        service_url += f"city{q_sep}'{city.upper()}'"
-    elif zip > 0:
-        service_url += f"zip{q_sep}'{zip}'"
-    elif len(state) > 0:
-        service_url += f"state{q_sep}'{state.upper()}'"
     
     if wheelchair_accesible:
         service_url += f"{q_and}wheelchair_accesible{q_sep}'YES'"
@@ -86,20 +80,10 @@ def shelters(city="", state="", latitude=-100000, longitude=-100000, zip=-10000,
         data = response.json()
         if 'features' in data:
             for shelter in data['features']: # works, but details to be discussed
-
-                # future implementation
-                '''
                 shelter_name = shelter.get("shelter_name", "N/A")
-                shelter_latitude = shelter.get("latitude", "N/A")
-                shelter_longitude = shelter.get("longitude", "N/A")
-                if shelter_latitude == "N/A" or shelter_longitude == "N/A":
-                    shelter_address = shelter.get("address", "N/A")
-                    shelter_city = shelter.get("city", "N/A")
-                    shelter_latitude, shelter_longitude = location_to_latlong(shelter_address, shelter_city)
-                
-                shelters.append({"name": shelter_name, "latitude": shelter_latitude, "longitude": shelter_longitude})
-                '''
-                shelters.append(shelter)
+                shelter_address = shelter.get("address", "N/A")
+                shelter_distance = distance_addresses(address, shelter_address)
+                shelters.append({"name": shelter_name, "address": shelter_address, "distance": shelter_distance})
             return shelters
     return None
 
@@ -107,6 +91,23 @@ def shelters(city="", state="", latitude=-100000, longitude=-100000, zip=-10000,
 '''
 def location_to_latlong(address, city):
     os.getenv()
-
 '''
-shelters(zip=33823)
+
+def distance_addresses(origin_address="", destination_address="", coordinates_origin=(-10000, -10000), coordinates_destination=(-1000000, -100000)):
+    api_key = os.getenv("GOOGLE_PLACES_API_KEY")
+
+    service_url = f"https://maps.googleapis.com/maps/api/distancematrix/json"
+    o_lat, o_long = coordinates_origin
+    d_lat, d_long = coordinates_destination
+    if -90 <= o_lat <= 90 and -180 <= o_long <= 180 and -90 <= o_lat <= 90 and -180 <= o_long <= 180:
+        service_url += f"?destinations={d_lat}%2C{d_long}&origins={o_lat}%2C{o_long}"
+    elif len(origin_address) > 0 and len(destination_address) > 0:
+        service_url += f"?destinations={destination_address}&origins={origin_address}"
+    service_url += f"&units=imperial&key={api_key}"
+
+    response = requests.get(service_url)
+
+    if response.status_code == 200:
+        data = response.json()
+        return data['rows'][0]['elements'][0]['distance']['text']
+    
