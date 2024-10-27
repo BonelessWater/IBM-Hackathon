@@ -51,7 +51,6 @@
             padding: 10px 20px;
         }
 
-        /* Logo and Website Title Styling */
         .logo-container {
             display: flex;
             align-items: center;
@@ -60,18 +59,16 @@
 
         .logo-container img {
             height: 60px;
-            margin-top: 0px; /* Fine-tune vertical alignment */
         }
 
         .logo-container a {
-            font-family: 'Jersey 10', sans-serif;  /* Only here */
+            font-family: 'Jersey 10', sans-serif;
             font-weight: 400;
             font-size: 1.8rem;
             color: var(--white-text);
             text-decoration: none;
         }
 
-        /* Right-aligned Navigation Links */
         ul#nav-mobile {
             display: flex;
             align-items: center;
@@ -81,22 +78,20 @@
         }
 
         ul#nav-mobile li a {
-            color: var(--primary-color);  /* Light blue */
+            color: var(--primary-color);
             font-size: 1.2rem;
             text-decoration: none;
-            font-family: 'Roboto', sans-serif; /* Default sans-serif for tabs */
+            font-family: 'Roboto', sans-serif;
         }
 
         ul#nav-mobile li a:hover {
-            color: var(--white-text); /* Change to white on hover */
+            color: var(--white-text);
         }
 
-        /* Main Content */
         main {
-            flex: 1; /* Push footer down */
+            flex: 1;
         }
 
-        /* Footer */
         footer {
             background-color: var(--dark-color);
             color: var(--white-text);
@@ -116,18 +111,65 @@
         .card {
             background-color: var(--primary-color);
         }
+
+        /* Chatbot UI */
+        .chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background-color: var(--white-text);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: var(--dark-color);
+            padding: 10px;
+            color: var(--white-text);
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            background-color: #f1f1f1;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .chat-send-btn {
+            margin-left: 5px;
+            background-color: var(--primary-color);
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            color: var(--white-text);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav>
-        <!-- Left: Logo and Title -->
         <div class="logo-container">
             <img src="{% static 'img/favicon.webp' %}" alt="ByteStorm Logo">
             <a href="{% url 'home' %}">ByteStorm</a>
         </div>
 
-        <!-- Right: Navigation Links and Logout Button -->
         <ul id="nav-mobile">
             <li><a href="{% url 'home' %}">Home</a></li>
             <li><a href="#">Prevention Tips</a></li>
@@ -146,52 +188,66 @@
         {% endblock %}
     </main>
 
+    <!-- Chatbot -->
+    <div class="chat-container">
+        <div class="chat-header">Chat with ByteBot</div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-container">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." />
+            <button class="chat-send-btn" id="chat-send-btn">Send</button>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="page-footer">
+    <footer>
         <div class="container">
             <p>&copy; 2024 ByteStorm - Providing reliable information during natural disasters.</p>
         </div>
     </footer>
 
     <script>
-        const chatMessages = document.getElementById('chat-messages');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-
-        sendBtn.addEventListener('click', sendMessage);
-
-        function addMessage(sender, message) {
-            const messageElement = document.createElement('p');
-            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-            chatMessages.appendChild(messageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
-        }
-
+        const messages = document.getElementById('chat-messages');
+        const input = document.getElementById('chat-input');
+        const sendButton = document.getElementById('chat-send-btn');
+    
+        sendButton.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    
         async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            addMessage('You', message);
-            userInput.value = '';
-
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
+    
+            addMessage('You', userMessage);
+            input.value = '';
+    
             try {
-                const response = await fetch('/chatbot/', {
+                const response = await fetch('/chatbot_message/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message }),
+                    body: JSON.stringify({ message: userMessage }),
                 });
-
+    
                 const data = await response.json();
                 if (data.response) {
-                    addMessage('Watson', data.response);
+                    addMessage('ByteBot', data.response);
                 } else {
-                    addMessage('Error', 'No response from Watson.');
+                    addMessage('ByteBot', "I'm not sure how to respond.");
                 }
             } catch (error) {
-                console.error('Error communicating with Watson:', error);
-                addMessage('Error', 'Failed to connect to the chatbot.');
+                console.error('Error communicating with ByteBot:', error);
+                addMessage('ByteBot', 'Failed to connect to the chatbot.');
             }
         }
+    
+        function addMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${sender}: ${message}`;
+            messages.appendChild(messageElement);
+            messages.scrollTop = messages.scrollHeight;
+        }
     </script>
+    
 </body>
 </html>

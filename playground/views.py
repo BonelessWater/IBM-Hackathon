@@ -20,22 +20,6 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY')
 PROJECT_ID = os.getenv('PROJECT_ID')
 
-"""
-# Initialize Watson ModelInference
-credentials = Credentials(
-    url="https://us-south.ml.cloud.ibm.com",
-    api_key=API_KEY,
-)
-client = APIClient(credentials)
-
-model = ModelInference(
-    model_id="ibm/granite-13b-chat-v2",
-    api_client=client,
-    project_id=PROJECT_ID,
-    params={"max_new_tokens": 50},
-)
-"""
-
 # Decorator to enforce login
 def login_required(view_func):
     def wrapper(request, *args, **kwargs):
@@ -56,10 +40,11 @@ def login_required(view_func):
 
 @login_required
 def home(request):
+
     logger.info(API_KEY)
     logger.info(API_KEY)
     logger.info(API_KEY)
-    
+
     logger.info("User %s accessed the home page", request.session.get('user_id'))
     return render(request, 'home.html')
 
@@ -133,26 +118,39 @@ def logout(request):
     logger.info("User %s logged out", user_id)
     return redirect('login')
 
-"""
 @csrf_exempt
 def chatbot_message(request):
-
     if request.method == 'POST':
         try:
+            # Initialize Watson ModelInference inside the function
+            credentials = Credentials(
+                url="https://us-south.ml.cloud.ibm.com",
+                api_key=API_KEY,
+            )
+            client = APIClient(credentials)
+
+            model = ModelInference(
+                model_id="ibm/granite-13b-chat-v2",
+                api_client=client,
+                project_id=PROJECT_ID,
+                params={"max_new_tokens": 50},
+            )
+
+            # Extract user message from the request
             user_message = json.loads(request.body).get('message', '')
 
             # Create the prompt for Watson
             prompt = (
-    f"You are an expert disaster prevention assistant. Your role is to provide precise, actionable advice "
-    f"for individuals facing natural disasters or emergencies. If the user needs emergency help, respond with "
-    f"calm and helpful guidance. If the user seeks prevention tips, provide them with practical suggestions. "
-    f"Use concise language and avoid unnecessary details. Now, respond to the following message:\n\n{user_message}"
-)
+                f"You are an expert disaster prevention assistant. Your role is to provide precise, actionable advice "
+                f"for individuals facing natural disasters or emergencies. If the user needs emergency help, respond with "
+                f"calm and helpful guidance. If the user seeks prevention tips, provide them with practical suggestions. "
+                f"Use concise language and avoid unnecessary details. Now, respond to the following message in ONE sentence:\n\n{user_message}"
+            )
 
-            # Get Watson's generated response
+            # Generate Watson's response
             response = model.generate_text(prompt)
 
-            # Ensure response is a string; return it directly
+            # Ensure response is correctly formatted
             if isinstance(response, str):
                 watson_reply = response
             else:
@@ -164,5 +162,3 @@ def chatbot_message(request):
             return JsonResponse({'error': 'An error occurred while communicating with Watson.'}, status=500)
 
     return JsonResponse({'error': 'Invalid request method.'}, status=400)
-
-"""
