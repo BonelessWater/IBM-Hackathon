@@ -1,3 +1,4 @@
+from ibm_watsonx_ai.client import ibm_watsonx_ai
 import imaplib2
 import email
 from email.header import decode_header
@@ -119,7 +120,7 @@ def body_translate(user_input):
     id = os.getenv("PROJECT_ID")
 
     # Initialize IBM Watson credentials
-    credentials = Credentials(
+    credentials = ibm_watsonx_ai.Credentials(
         url="https://us-south.ml.cloud.ibm.com",
         api_key=api,
     )

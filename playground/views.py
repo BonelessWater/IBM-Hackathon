@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from dotenv import load_dotenv
 from ibm_watsonx_ai import APIClient, Credentials
+from ibm_watsonx_ai.client import ibm_watsonx_ai
 from ibm_watsonx_ai.foundation_models import ModelInference
 from django.conf import settings
 from .models import User
@@ -124,7 +125,7 @@ def chatbot_message(request):
     if request.method == 'POST':
         try:
             # Initialize Watson ModelInference inside the function
-            credentials = Credentials(
+            credentials = ibm_watsonx_ai.Credentials(
                 url="https://us-south.ml.cloud.ibm.com",
                 api_key=API_KEY,
             )
