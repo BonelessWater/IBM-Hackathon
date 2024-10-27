@@ -39,11 +39,20 @@ model = ModelInference(
 # Decorator to enforce login
 def login_required(view_func):
     def wrapper(request, *args, **kwargs):
-        if not settings.DEBUG or not request.session.get('user_id'):
+        # If in DEBUG mode, skip login check
+        if settings.DEBUG:
+            logger.info("DEBUG mode enabled, bypassing login for %s", request.path)
+            return view_func(request, *args, **kwargs)
+
+        # If not in DEBUG, enforce login
+        if not request.session.get('user_id'):
             logger.info("Unauthorized access attempt to %s", request.path)
             return redirect('login')
+
         return view_func(request, *args, **kwargs)
+    
     return wrapper
+
 
 @login_required
 def home(request):
@@ -54,7 +63,8 @@ def signup(request):
     error_message = None
     if request.method == 'POST':
         username = request.POST['username'].strip()
-        password = make_password(request.POST['password'])
+        password = request.POST['password']
+        hashed_password = make_password(password)  # Ensure password is hashed
         email = request.POST['email'].strip()
         address = request.POST['address'].strip()
         phone_number = request.POST['phone_number'].strip()
@@ -68,7 +78,7 @@ def signup(request):
             try:
                 User.objects.create(
                     username=username,
-                    password=password,
+                    password=hashed_password,  # Store the hashed password
                     email=email,
                     address=address,
                     phone_number=phone_number,
@@ -86,17 +96,30 @@ def signup(request):
 def login(request):
     error_message = None
     if request.method == 'POST':
-        username = request.POST['username']
+        username = request.POST['username'].strip()
         password = request.POST['password']
 
-        user = User.objects.filter(username=username).first()
-        if user and check_password(password, user.password):
-            request.session['user_id'] = user.id
-            logger.info("User %s logged in", username)
-            return redirect('home')
-        else:
-            error_message = "Invalid username or password."
-            logger.warning("Failed login attempt for username %s", username)
+        try:
+            user = User.objects.filter(username__iexact=username).first()
+
+            if user:
+                # Log details for debugging
+                logger.debug(f"User found: {user.username}, hashed password: {user.password}")
+
+                if check_password(password, user.password):
+                    request.session['user_id'] = user.id
+                    logger.info("User %s logged in successfully", username)
+                    return redirect('home')
+                else:
+                    error_message = "Invalid username or password."
+                    logger.warning("Incorrect password for username %s", username)
+            else:
+                error_message = "Invalid username or password."
+                logger.warning("No user found for username %s", username)
+
+        except Exception as e:
+            error_message = "An unexpected error occurred. Please try again."
+            logger.error("Login error for username %s: %s", username, str(e))
 
     return render(request, 'login.html', {'error_message': error_message})
 
