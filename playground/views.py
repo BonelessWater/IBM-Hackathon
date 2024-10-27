@@ -231,31 +231,17 @@ def update_user_state(request):
             logger.info("User %s changed state to %s", request.user.username, state)
             return redirect('home')
     return JsonResponse({'error': 'Invalid state'}, status=400)
+
 def resources(request):
-    user_id = request.session.get('user_id')
-    user = User.objects.get(id=user_id)
-    address = logger.info("User address: %s", user.address)
-    lat, lng = location_to_latlong(address)
-    
-    shelter_data = shelter_finnder(address, lat, lng)
-    shelters = []
-    for shelter in shelter_data[:5]:
-        shelters.append({"name": shelter['name'], "address": shelter["address"], "distance": shelter["distance"]})
-    
-    '''
+    # Mock data for shelters, hospitals, and gas stations
     shelters = [
-        {'name': 'Gainesville S', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
+        {'name': 'Gainesville Shelter A', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
         {'name': 'Gainesville Shelter B', 'address': '5678 Safe Haven St', 'distance': 2.1, 'contact': '352-987-6543'},
         {'name': 'Gainesville Shelter C', 'address': '4321 Shelter Ct', 'distance': 2.5, 'contact': '352-555-1212'},
         {'name': 'Gainesville Shelter D', 'address': '9101 Refuge Ln', 'distance': 3.0, 'contact': '352-444-3333'},
         {'name': 'Gainesville Shelter E', 'address': '2020 Safety Ave', 'distance': 3.8, 'contact': '352-111-2222'},
     ]
-    '''
-    hospital_data = hospital_finder(lat,lng)
-    hospitals = []
-    for hospital in hospital_data[:5]:
-        hospitals.append({"name": hospital["name"], "address": hospital["address"], "distance": hospital["distance"]})
-    '''""
+
     hospitals = [
         {'name': 'UF Health Shands Hospital', 'address': '1600 SW Archer Rd', 'distance': 1.1, 'contact': '352-265-0111'},
         {'name': 'North Florida Regional Medical', 'address': '6500 W Newberry Rd', 'distance': 3.5, 'contact': '352-333-4000'},
@@ -263,12 +249,7 @@ def resources(request):
         {'name': 'Gainesville Urgent Care', 'address': '9200 NW 39th Ave', 'distance': 4.5, 'contact': '352-332-1890'},
         {'name': 'Alachua General Hospital', 'address': '701 NW 1st St', 'distance': 2.8, 'contact': '352-338-0022'},
     ]
-    '''
-    gas_station_data = available_gas_stations(address, lat, lng)
-    gas_stations = []
-    for gas_station in gas_station_data[:5]:
-        gas_stations.append({"name": gas_station["name"], "address": gas_station["address"], "distance": gas_station["distance"], "fuel_type": gas_station["fuel_type"]})
-    '''
+
     gas_stations = [
         {'name': 'Shell Gas Station', 'address': '1001 NW 13th St', 'distance': 1.5, 'contact': '352-378-0222'},
         {'name': 'Chevron', 'address': '2002 SW Archer Rd', 'distance': 1.8, 'contact': '352-123-4567'},
@@ -276,20 +257,13 @@ def resources(request):
         {'name': 'Circle K', 'address': '4004 SW 20th Ave', 'distance': 3.1, 'contact': '352-555-6666'},
         {'name': 'Wawa', 'address': '5005 University Ave', 'distance': 2.7, 'contact': '352-777-8888'},
     ]
-    '''
+
     context = {
-        'inventory_items': inventory_items,
-        'user_state': user_state,
-        'shelters': [
-            {'name': 'Gainesville Shelter A', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
-        ],
-        'hospitals': [
-            {'name': 'UF Health Shands', 'address': '1600 SW Archer Rd', 'distance': 1.1, 'contact': '352-265-0111'},
-        ],
-        'gas_stations': [
-            {'name': 'Shell', 'address': '1001 NW 13th St', 'distance': 1.5, 'contact': '352-378-0222'},
-        ],
+        'shelters': shelters,
+        'hospitals': hospitals,
+        'gas_stations': gas_stations,
     }
+
     return render(request, 'resources.html', context)
 
 def prevention(request):

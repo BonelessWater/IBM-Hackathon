@@ -111,6 +111,7 @@ def latlong_to_location(latitude: int, longitude: int) -> str:
 def location_to_latlong(address: str) -> tuple:
     api_key = os.getenv("GOOGLE_PLACES_API_KEY")
 
+    print(address)
     address.replace(" ", "+")
 
     service_url = f"https://maps.googleapis.com/maps/api/geocode/json"
