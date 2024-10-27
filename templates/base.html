@@ -154,6 +154,15 @@
             color: var(--white-text);
             cursor: pointer;
         }
+
+        .card {
+            background-color: var(--primary-color);
+        }
+    
+        .card-content ul {
+            list-style-type: disc;
+            margin-left: 20px;
+        }
     </style>
 </head>
 <body>
@@ -165,7 +174,7 @@
 
         <ul id="nav-mobile">
             <li><a href="{% url 'home' %}">Home</a></li>
-            <li><a href="#">Prevention Tips</a></li>
+            <li><a href="{% url 'prevention' %}">Prevention Tips</a></li>
             <li><a href="{% url 'resources' %}">Emergency Resources</a></li>
             <li>
                 <a href="{% url 'logout' %}" class="btn-flat white-text">

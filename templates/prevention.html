@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h3 class="center-align">Prevention Tips</h3>
+    <p class="flow-text center-align">
+        Stay prepared and protect yourself by following these essential prevention tips for different types of emergencies.
+    </p>
+
+    <div class="row">
+        <!-- Storm Prevention -->
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-content white-text">
+                    <span class="card-title">Storm Prevention</span>
+                    <ul>
+                        <li>Secure outdoor objects that could become projectiles.</li>
+                        <li>Keep emergency supplies, like water and batteries, at home.</li>
+                        <li>Stay informed through weather updates and alerts.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fire Prevention -->
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-content white-text">
+                    <span class="card-title">Fire Prevention</span>
+                    <ul>
+                        <li>Install smoke detectors and check batteries regularly.</li>
+                        <li>Keep flammable materials away from heat sources.</li>
+                        <li>Plan and practice escape routes with your family.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earthquake Prevention -->
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-content white-text">
+                    <span class="card-title">Earthquake Prevention</span>
+                    <ul>
+                        <li>Secure heavy objects to walls to prevent tipping.</li>
+                        <li>Identify safe spots in each room, like under sturdy furniture.</li>
+                        <li>Prepare an emergency kit with essentials like water, food, and medical supplies.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flood Prevention -->
+        <div class="col s12 m6">
+            <div class="card">
+                <div class="card-content white-text">
+                    <span class="card-title">Flood Prevention</span>
+                    <ul>
+                        <li>Move valuables to higher levels in your home.</li>
+                        <li>Keep sandbags ready to prevent water from entering.</li>
+                        <li>Avoid driving through flooded areas.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot Section -->
+    <div class="chat-container" style="margin-top: 50px;">
+        <div class="chat-header center-align">Chat with ByteBot</div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-container">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." />
+            <button class="chat-send-btn" id="chat-send-btn">Send</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

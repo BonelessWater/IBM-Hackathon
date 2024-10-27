@@ -24,7 +24,7 @@ PROJECT_ID = os.getenv('PROJECT_ID')
 def login_required(view_func):
     def wrapper(request, *args, **kwargs):
         # If in DEBUG mode, skip login check
-        if not settings.DEBUG:
+        if settings.DEBUG:
             logger.info("DEBUG mode enabled, bypassing login for %s", request.path)
             return view_func(request, *args, **kwargs)
 
@@ -197,3 +197,5 @@ def resources(request):
 
     return render(request, 'resources.html', context)
 
+def prevention(request):
+    return render(request, 'prevention.html')

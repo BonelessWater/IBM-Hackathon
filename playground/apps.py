@@ -20,7 +20,7 @@ class PlaygroundConfig(AppConfig):
         # Add a job to run every 5 minutes
         scheduler.add_job(
             log_emails_task,
-            trigger=CronTrigger(minute='*/5'),  # Every 5 minutes
+            trigger=CronTrigger(hour='*/5'),  # Every 5 minutes
             id='log_emails_task',
             replace_existing=True,
             max_instances=1
