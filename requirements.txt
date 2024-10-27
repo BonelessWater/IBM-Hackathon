@@ -12,4 +12,4 @@ pydub==0.25.1
 gunicorn==22.0.0 
 celery==5.4.0
 apscheduler==3.10.4
-imaplib
+imaplib2

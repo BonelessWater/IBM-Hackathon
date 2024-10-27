@@ -1,4 +1,4 @@
-import imaplib
+import imaplib2
 import email
 from email.header import decode_header
 from .models import EmailLog
@@ -15,7 +15,7 @@ def fetch_and_log_emails():
     EMAIL_ACCOUNT = 'your-email@example.com'
     PASSWORD = 'your-password'
 
-    mail = imaplib.IMAP4_SSL(IMAP_SERVER)
+    mail = imaplib2.IMAP4_SSL(IMAP_SERVER)
     mail.login(EMAIL_ACCOUNT, PASSWORD)
     mail.select("inbox")
 
