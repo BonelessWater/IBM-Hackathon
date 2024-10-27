@@ -1,7 +1,7 @@
 import imaplib2
 import email
 from email.header import decode_header
-from .models import EmailLog
+from .models import User
 from ibm_watsonx_ai import APIClient
 from ibm_watsonx_ai import Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import os
 
 import logging
+from django.core.exceptions import ObjectDoesNotExist
 
 logger = logging.getLogger(__name__)
 
@@ -95,9 +96,19 @@ def fetch_and_log_emails():
         print("-------------------------------")
         print(key+":"+value)
         print("-------------------------------")
-        value = body_translate(value)
-        EmailLog.objects.create(email_address=key, email_body=value)
-
+        try:
+            # Lookup the user profile based on the email
+            user_profile = User.objects.get(email=key)
+            
+            # Update the state
+            user_profile.state = body_translate(value)
+            
+            # Save the changes to the database
+            user_profile.save()
+            
+            print(f"Updated state for {key} to {body_translate(value)}.")
+        except ObjectDoesNotExist:
+            print(f"No user found with email: {key}.")
 
 def body_translate(user_input):
 
@@ -132,7 +143,9 @@ def body_translate(user_input):
     Respond WITH ANGER if the user needs help. Response with positive intense
     emotions if the user can help. Ask for clarification otherwise:
 
-    "{user_input}"
+    Here is the user's input: "{user_input}"
+
+    Respond as instructed.
     """
 
     # Get Watson's generated response
@@ -148,11 +161,11 @@ def body_translate(user_input):
 
     # Determine the intended response based on the sentiment
     if average_score >= 0.05:
-        intended_response = "Able to help"
+        intended_response = "helper"
     elif average_score <= -0.05:
-        intended_response = "Needs help"
+        intended_response = "help"
     else:
-        intended_response = "No longer needs help or Cannot help"
+        intended_response = "neither"
 
     # Print the sentiment and the intended response
     print(f"Sentiment scores: {compound_scores}")
