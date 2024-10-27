@@ -186,7 +186,6 @@ def resources(request):
     for shelter in shelter_data[:5]:
         shelters.append({"name": shelter['name'], "address": shelter["address"], "distance": shelter["distance"]})
     
-
     '''
     shelters = [
         {'name': 'Gainesville S', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
