@@ -9,6 +9,7 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),  # Logout
     path('signup/', views.signup, name='signup'),  # Signup
     path('resources/', views.resources, name='resources'),
+    path('chatbot_message/', views.chatbot_message, name='chatbot_message'),  # New chatbot URL
     path('add_inventory/', views.add_inventory, name='add_inventory'),
     path('request_item/<int:item_id>/', views.request_item, name='request_item'),
     path('update_user_state/', views.update_user_state, name='update_user_state'),
