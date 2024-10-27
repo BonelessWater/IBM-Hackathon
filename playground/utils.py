@@ -9,7 +9,6 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from dotenv import load_dotenv
 import os
 
-
 def fetch_and_log_emails():
     IMAP_SERVER = 'imap.gmail.com'
     EMAIL_ACCOUNT = 'your-email@example.com'

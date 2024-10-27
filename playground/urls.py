@@ -8,7 +8,8 @@ urlpatterns = [
     path('login/', login, name='login'),
     path('', home, name='home'),
     path('logout/', logout, name='logout'),
-    path('chatbot/', chatbot_message, name='chatbot_message'),
+    path('chatbot_message/', chatbot_message, name='chatbot_message'),  # New route
+
     
 ]
 
