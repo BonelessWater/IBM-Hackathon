@@ -11,3 +11,10 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
+
+class AudioFile(models.Model):
+    audio = models.FileField(upload_to='audio/')
+    transcript = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.audio.name

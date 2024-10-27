@@ -4,7 +4,8 @@
 <div class="container">
     <h3 class="center-align">Welcome to the AI Disaster Prevention Hub</h3>
     <p class="flow-text">
-        This platform provides essential resources, real-time alerts, and guidelines to help you prepare for, respond to, and recover from natural disasters.
+        This platform provides essential resources, real-time alerts, and guidelines to help you prepare for, 
+        respond to, and recover from natural disasters.
     </p>
 
     <div class="right-align" style="margin-bottom: 20px;">
@@ -13,21 +14,13 @@
         </a>
     </div>
 
-    <div class="center-align" style="margin: 30px 0;">
-        <button id="record-btn" class="btn waves-effect waves-light">Record Message</button>
-        <button id="stop-btn" class="btn red waves-effect waves-light" disabled>Stop Recording</button>
-    </div>
-
-    <div class="center-align">
-        <audio id="audio-preview" controls></audio>
-    </div>
-
     <div class="row">
         <div class="col s12 m6">
             <div class="card blue-grey darken-1">
                 <div class="card-content white-text">
                     <span class="card-title">Prevention Guidelines</span>
-                    <p>Learn how to reduce risks and prepare yourself for potential natural disasters through our AI-guided prevention tips.</p>
+                    <p>Learn how to reduce risks and prepare yourself for potential natural disasters 
+                       through our AI-guided prevention tips.</p>
                 </div>
                 <div class="card-action">
                     <a href="#" class="white-text">Learn More</a>
@@ -47,58 +40,5 @@
             </div>
         </div>
     </div>
-
-    <script>
-        let mediaRecorder;
-        let audioChunks = [];
-
-        document.getElementById('record-btn').addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    document.getElementById('audio-preview').src = audioUrl;
-
-                    // Prepare FormData to upload audio
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'recording.mp3');
-
-                    // Send the audio to the backend for processing
-                    const response = await fetch("{% url 'process_audio' %}", {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const result = await response.json();
-                    if (result.success) {
-                        alert(result.message);
-                    } else {
-                        alert('Failed to process audio.');
-                    }
-
-                    audioChunks = [];  // Reset for the next recording
-                };
-
-                mediaRecorder.start();
-                document.getElementById('record-btn').disabled = true;
-                document.getElementById('stop-btn').disabled = false;
-            } catch (error) {
-                alert('Microphone access denied.');
-            }
-        });
-
-        document.getElementById('stop-btn').addEventListener('click', () => {
-            mediaRecorder.stop();
-            document.getElementById('record-btn').disabled = false;
-            document.getElementById('stop-btn').disabled = true;
-        });
-    </script>
 </div>
 {% endblock %}
