@@ -11,6 +11,7 @@ from django.conf import settings
 from .models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import IntegrityError
+from locate_nearby_resources import available_gas_stations, shelter_finnder, hospital_finder, location_to_latlong
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -175,7 +176,9 @@ def chatbot_message(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
 def resources(request):
-    # Mock data for shelters, hospitals, and gas stations
+    address= ""
+    lat, lng = location_to_latlong(address)
+    
     shelters = [
         {'name': 'Gainesville Shelter A', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
         {'name': 'Gainesville Shelter B', 'address': '5678 Safe Haven St', 'distance': 2.1, 'contact': '352-987-6543'},
