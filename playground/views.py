@@ -20,6 +20,7 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY')
 PROJECT_ID = os.getenv('PROJECT_ID')
 
+"""
 # Initialize Watson ModelInference
 credentials = Credentials(
     url="https://us-south.ml.cloud.ibm.com",
@@ -33,6 +34,7 @@ model = ModelInference(
     project_id=PROJECT_ID,
     params={"max_new_tokens": 50},
 )
+"""
 
 # Decorator to enforce login
 def login_required(view_func):
@@ -104,9 +106,10 @@ def logout(request):
     logger.info("User %s logged out", user_id)
     return redirect('login')
 
+"""
 @csrf_exempt
 def chatbot_message(request):
-    """Handle chatbot message exchange."""
+
     if request.method == 'POST':
         try:
             user_message = json.loads(request.body).get('message', '')
@@ -135,5 +138,5 @@ def chatbot_message(request):
 
     return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
-
+"""
 
