@@ -9,6 +9,10 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from dotenv import load_dotenv
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -87,6 +91,7 @@ def fetch_and_log_emails():
     msgs = get_emails()
 
     for key, value in msgs.items():
+        logger.info(key+":"+value)
         print("-------------------------------")
         print(key+":"+value)
         print("-------------------------------")
