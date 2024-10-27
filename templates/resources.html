@@ -8,6 +8,7 @@
     </p>
 
     <!-- User State Form -->
+    <div class="center">
     {% if user.is_authenticated %}
         <form method="post" action="{% url 'update_user_state' %}">
             {% csrf_token %}
@@ -16,7 +17,7 @@
             <button class="btn green accent-2" name="state" value="helper">Able to Help</button>
         </form>
         <p class="center-align" style="margin-top: 10px;">
-            Your current state: <strong>{{ user_state }}</strong>
+            Your current state: <strong>You are currently browsing as a guest. </strong>
         </p>
     {% else %}
         <p class="center-align">
@@ -24,6 +25,7 @@
             <a href="{% url 'login' %}">Log in</a> to update your state and access more features.
         </p>
     {% endif %}
+    </div>
 
     <!-- Inventory Section -->
     <div class="container" style="margin-top: 20px;">
