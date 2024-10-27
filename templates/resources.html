@@ -2,12 +2,84 @@
 
 {% block content %}
 <div class="container">
-    <h3 class="center-align">Emergency Resources Near You</h3>
+    <h3 class="center-align">Emergency Resources and Inventory</h3>
     <p class="flow-text center-align">
-        Below is a list of the nearest shelters, hospitals, and gas stations to assist you in emergencies.
+        Below is a list of available inventory and emergency resources near you.
     </p>
 
-    <!-- Resources Table -->
+    <!-- User State Form -->
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'update_user_state' %}">
+            {% csrf_token %}
+            <button class="btn" name="state" value="neither">Neither</button>
+            <button class="btn light-blue accent-3" name="state" value="help">Need Help</button>
+            <button class="btn green accent-2" name="state" value="helper">Able to Help</button>
+        </form>
+        <p class="center-align" style="margin-top: 10px;">
+            Your current state: <strong>{{ user_state }}</strong>
+        </p>
+    {% else %}
+        <p class="center-align">
+            You are currently browsing as a guest. 
+            <a href="{% url 'login' %}">Log in</a> to update your state and access more features.
+        </p>
+    {% endif %}
+
+    <!-- Inventory Section -->
+    <div class="container" style="margin-top: 20px;">
+        <h4 class="center-align">Current Inventory</h4>
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    {% if user.is_authenticated and user_state == 'help' %}
+                        <th>Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inventory_items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    {% if user.is_authenticated and user_state == 'help' %}
+                    <td>
+                        <form method="post" action="{% url 'request_item' item.id %}">
+                            {% csrf_token %}
+                            <button class="btn" type="submit" {% if item.quantity == 0 %}disabled{% endif %}>
+                                Request
+                            </button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Inventory Form (Only for Helpers) -->
+    {% if user.is_authenticated and user_state == 'helper' %}
+    <div class="container" style="margin-top: 20px;">
+        <h4 class="center-align">Add Inventory</h4>
+        <form method="post" action="{% url 'add_inventory' %}">
+            {% csrf_token %}
+            <div class="input-field">
+                <input id="item_name" name="item_name" type="text" required>
+                <label for="item_name">Item Name</label>
+            </div>
+            <div class="input-field">
+                <input id="quantity" name="quantity" type="number" required min="1">
+                <label for="quantity">Quantity</label>
+            </div>
+            <button class="btn" type="submit">Add</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Emergency Resources Section -->
+    <h4 class="center-align" style="margin-top: 40px;">Emergency Resources Near You</h4>
     <table class="highlight centered">
         <thead>
             <tr>
@@ -19,7 +91,6 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Shelters -->
             <tr>
                 <td colspan="5" class="blue white-text center-align">Shelters</td>
             </tr>
@@ -32,8 +103,6 @@
                 <td>{{ shelter.contact }}</td>
             </tr>
             {% endfor %}
-
-            <!-- Hospitals -->
             <tr>
                 <td colspan="5" class="red white-text center-align">Hospitals</td>
             </tr>
@@ -46,8 +115,6 @@
                 <td>{{ hospital.contact }}</td>
             </tr>
             {% endfor %}
-
-            <!-- Gas Stations -->
             <tr>
                 <td colspan="5" class="green white-text center-align">Gas Stations</td>
             </tr>

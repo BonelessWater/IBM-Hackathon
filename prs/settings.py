@@ -32,8 +32,14 @@ CSRF_TRUSTED_ORIGINS = [
     'https://bytestorm.azurewebsites.net',
 ]
 
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# Ensure sessions use cookies correctly
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_SAVE_EVERY_REQUEST = True  # Save the session on every request
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Session won't expire when browser closes
+
+# Ensure CSRF token is properly configured
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 
 # Application definition
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -58,6 +64,8 @@ INSTALLED_APPS = [
     'playground.apps.PlaygroundConfig',
     'debug_toolbar'
 ]
+
+AUTH_USER_MODEL = 'playground.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

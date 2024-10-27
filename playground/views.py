@@ -1,14 +1,14 @@
 import os
 import json
 import logging
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from dotenv import load_dotenv
 from ibm_watsonx_ai import APIClient, Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
 from django.conf import settings
-from .models import User
+from .models import User, InventoryItem
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import IntegrityError
 
@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
-API_KEY = os.getenv('API_KEY')
-PROJECT_ID = os.getenv('PROJECT_ID')
 
 # Decorator to enforce login
 def login_required(view_func):
@@ -40,10 +38,6 @@ def login_required(view_func):
 
 @login_required
 def home(request):
-
-    logger.info(API_KEY)
-    logger.info(API_KEY)
-    logger.info(API_KEY)
 
     logger.info("User %s accessed the home page", request.session.get('user_id'))
     return render(request, 'home.html')
@@ -82,33 +76,20 @@ def signup(request):
 
     return render(request, 'signup.html', {'error_message': error_message})
 
+from django.contrib.auth import authenticate, login as auth_login
+
 def login(request):
     error_message = None
     if request.method == 'POST':
         username = request.POST['username'].strip()
         password = request.POST['password']
 
-        try:
-            user = User.objects.filter(username__iexact=username).first()
-
-            if user:
-                # Log details for debugging
-                logger.debug(f"User found: {user.username}, hashed password: {user.password}")
-
-                if check_password(password, user.password):
-                    request.session['user_id'] = user.id
-                    logger.info("User %s logged in successfully", username)
-                    return redirect('home')
-                else:
-                    error_message = "Invalid username or password."
-                    logger.warning("Incorrect password for username %s", username)
-            else:
-                error_message = "Invalid username or password."
-                logger.warning("No user found for username %s", username)
-
-        except Exception as e:
-            error_message = "An unexpected error occurred. Please try again."
-            logger.error("Login error for username %s: %s", username, str(e))
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            auth_login(request, user)  # Use Django's login() function
+            return redirect('resources')
+        else:
+            error_message = "Invalid username or password."
 
     return render(request, 'login.html', {'error_message': error_message})
 
@@ -120,6 +101,17 @@ def logout(request):
 
 @csrf_exempt
 def chatbot_message(request):
+    API_KEY = os.getenv('API_KEY')
+    PROJECT_ID = os.getenv('PROJECT_ID')
+
+    logger.info(API_KEY)
+    logger.info(API_KEY)
+    logger.info(API_KEY)
+
+    logger.info(PROJECT_ID)
+    logger.info(PROJECT_ID)
+    logger.info(PROJECT_ID)
+
     if request.method == 'POST':
         try:
             # Initialize Watson ModelInference inside the function
@@ -133,7 +125,7 @@ def chatbot_message(request):
                 model_id="ibm/granite-13b-chat-v2",
                 api_client=client,
                 project_id=PROJECT_ID,
-                params={"max_new_tokens": 50},
+                params={"max_new_tokens": 8000},
             )
 
             # Extract user message from the request
@@ -174,38 +166,105 @@ def chatbot_message(request):
 
     return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
+@csrf_exempt
+def update_user_state(request):
+    """Update the user's state."""
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            # Return a friendly response or handle anonymous users gracefully
+            return JsonResponse({'error': 'You need to log in to change your state.'}, status=401)
+
+        state = request.POST.get('state')
+        if state in ['neither', 'help', 'helper']:
+            request.user.state = state  # Only modify if the user is authenticated
+            request.user.save()
+            logger.info("User %s changed state to %s", request.user.username, state)
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'error': 'Invalid state provided.'}, status=400)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+@csrf_exempt
+def add_inventory(request):
+    """Allows helpers to add inventory items."""
+    if request.method == 'POST':
+        if request.user.state == 'helper':
+            item_name = request.POST.get('item_name')
+            quantity = int(request.POST.get('quantity', 0))
+            
+            if item_name and quantity > 0:
+                InventoryItem.objects.create(name=item_name, quantity=quantity)
+                logger.info("User %s added %s (x%s) to inventory", request.user.username, item_name, quantity)
+            else:
+                logger.warning("Invalid inventory data provided by %s", request.user.username)
+        else:
+            logger.warning("Unauthorized attempt to add inventory by %s", request.user.username)
+    return redirect('home')
+
+@csrf_exempt
+def request_item(request, item_id):
+    """Allows users in need to request items from the inventory."""
+    if request.method == 'POST':
+        if request.user.state == 'help':
+            item = get_object_or_404(InventoryItem, id=item_id)
+            if item.quantity > 0:
+                item.quantity -= 1
+                item.save()
+                logger.info("User %s requested %s", request.user.username, item.name)
+            else:
+                logger.warning("User %s tried to request %s but it's out of stock", request.user.username, item.name)
+        else:
+            logger.warning("Unauthorized request attempt by %s", request.user.username)
+    return redirect('home')
+
+@csrf_exempt
+def update_user_state(request):
+    """Update the user's state."""
+    if request.method == 'POST':
+        state = request.POST.get('state')
+        if state in ['neither', 'help', 'helper']:
+            request.user.state = state
+            request.user.save()
+            logger.info("User %s changed state to %s", request.user.username, state)
+            return redirect('home')
+    return JsonResponse({'error': 'Invalid state'}, status=400)
 def resources(request):
-    # Mock data for shelters, hospitals, and gas stations
-    shelters = [
-        {'name': 'Gainesville Shelter A', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
-        {'name': 'Gainesville Shelter B', 'address': '5678 Safe Haven St', 'distance': 2.1, 'contact': '352-987-6543'},
-        {'name': 'Gainesville Shelter C', 'address': '4321 Shelter Ct', 'distance': 2.5, 'contact': '352-555-1212'},
-        {'name': 'Gainesville Shelter D', 'address': '9101 Refuge Ln', 'distance': 3.0, 'contact': '352-444-3333'},
-        {'name': 'Gainesville Shelter E', 'address': '2020 Safety Ave', 'distance': 3.8, 'contact': '352-111-2222'},
-    ]
+    """Display resources and manage inventory."""
+    user = request.user  # Get the user object
+    user_state = user.state if user.is_authenticated else 'neither'  # Safely access state
 
-    hospitals = [
-        {'name': 'UF Health Shands Hospital', 'address': '1600 SW Archer Rd', 'distance': 1.1, 'contact': '352-265-0111'},
-        {'name': 'North Florida Regional Medical', 'address': '6500 W Newberry Rd', 'distance': 3.5, 'contact': '352-333-4000'},
-        {'name': 'VA Medical Center', 'address': '1601 SW Archer Rd', 'distance': 1.2, 'contact': '352-376-1611'},
-        {'name': 'Gainesville Urgent Care', 'address': '9200 NW 39th Ave', 'distance': 4.5, 'contact': '352-332-1890'},
-        {'name': 'Alachua General Hospital', 'address': '701 NW 1st St', 'distance': 2.8, 'contact': '352-338-0022'},
-    ]
+    if request.method == 'POST' and user.is_authenticated:
+        if user_state == 'helper':
+            # Add inventory
+            item_name = request.POST.get('item_name')
+            quantity = int(request.POST.get('quantity', 0))
+            if item_name and quantity > 0:
+                InventoryItem.objects.create(name=item_name, quantity=quantity)
+        elif user_state == 'help':
+            # Request inventory
+            item_id = request.POST.get('item_id')
+            item = get_object_or_404(InventoryItem, id=item_id)
+            if item.quantity > 0:
+                item.quantity -= 1
+                item.save()
 
-    gas_stations = [
-        {'name': 'Shell Gas Station', 'address': '1001 NW 13th St', 'distance': 1.5, 'contact': '352-378-0222'},
-        {'name': 'Chevron', 'address': '2002 SW Archer Rd', 'distance': 1.8, 'contact': '352-123-4567'},
-        {'name': 'BP Gas', 'address': '3003 NW 6th St', 'distance': 2.2, 'contact': '352-444-5555'},
-        {'name': 'Circle K', 'address': '4004 SW 20th Ave', 'distance': 3.1, 'contact': '352-555-6666'},
-        {'name': 'Wawa', 'address': '5005 University Ave', 'distance': 2.7, 'contact': '352-777-8888'},
-    ]
+    # Retrieve all inventory items
+    inventory_items = InventoryItem.objects.all()
 
     context = {
-        'shelters': shelters,
-        'hospitals': hospitals,
-        'gas_stations': gas_stations,
+        'inventory_items': inventory_items,
+        'user_state': user_state,
+        'shelters': [
+            {'name': 'Gainesville Shelter A', 'address': '1234 Shelter Rd', 'distance': 1.2, 'contact': '352-123-4567'},
+        ],
+        'hospitals': [
+            {'name': 'UF Health Shands', 'address': '1600 SW Archer Rd', 'distance': 1.1, 'contact': '352-265-0111'},
+        ],
+        'gas_stations': [
+            {'name': 'Shell', 'address': '1001 NW 13th St', 'distance': 1.5, 'contact': '352-378-0222'},
+        ],
     }
-
     return render(request, 'resources.html', context)
 
 def prevention(request):

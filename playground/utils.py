@@ -1,7 +1,7 @@
 import imaplib2
 import email
 from email.header import decode_header
-from .models import EmailLog
+from .models import User
 from ibm_watsonx_ai import APIClient
 from ibm_watsonx_ai import Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
@@ -96,7 +96,12 @@ def fetch_and_log_emails():
         print(key+":"+value)
         print("-------------------------------")
         value = body_translate(value)
-        EmailLog.objects.create(email_address=key, email_body=value)
+        user = User.objects.filter(email=key).first()
+        if user:
+            user.state = value
+            user.save()
+        else:
+            User.objects.create(email_address=key, state=value)
 
 
 def body_translate(user_input):

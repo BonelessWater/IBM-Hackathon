@@ -2,3 +2,5 @@ venv
 tenv
 .env
 service_keys.json
+
+__pycache__/*

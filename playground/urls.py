@@ -1,17 +1,18 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import *
+from . import views
 
 urlpatterns = [
-    path('signup/', signup, name='signup'),
-    path('login/', login, name='login'),
-    path('', home, name='home'),
-    path('logout/', logout, name='logout'),
-    path('chatbot_message/', chatbot_message, name='chatbot_message'), 
-    path('resources/', resources, name='resources'),
-    path('prevention/', prevention, name='prevention'),
-    
+    path('', views.home, name='home'),  # Home page
+    path('login/', views.login, name='login'),  # Login
+    path('logout/', views.logout, name='logout'),  # Logout
+    path('signup/', views.signup, name='signup'),  # Signup
+    path('resources/', views.resources, name='resources'),
+    path('add_inventory/', views.add_inventory, name='add_inventory'),
+    path('request_item/<int:item_id>/', views.request_item, name='request_item'),
+    path('update_user_state/', views.update_user_state, name='update_user_state'),
+    path('prevention/', views.prevention, name='prevention'),  # Prevention page
 ]
 
 # Serve static and media files during development
