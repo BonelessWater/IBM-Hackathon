@@ -7,7 +7,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/gmail.modify"]
 
 
 def main():
@@ -50,6 +50,7 @@ def main():
         msg_from = None
         
         for header in msg_data['payload']['headers']:
+            print(header['name'])
             if header['name'] == 'Subject':
                 msg_subject = header['value']
             if header['name'] == 'From':
@@ -58,6 +59,9 @@ def main():
         print(f'From: {msg_from}')
         print(f'Subject: {msg_subject}')
         print('---')
+
+        # delete after reading
+        service.users().messages().delete(userId='me', id=msg_id).execute()
 
   except HttpError as error:
     # TODO(developer) - Handle errors from gmail API.
