@@ -105,7 +105,22 @@ def latlong_to_location(latitude: int, longitude: int) -> str:
     response = requests.get(service_url)
     if response.status_code == 200:
         data = response.json()
-        return data['resutlts'][0]['formatted_address']
+        return data['results'][0]['formatted_address']
+
+
+def location_to_latlong(address: str) -> tuple:
+    api_key = os.getenv("GOOGLE_PLACES_API_KEY")
+
+    address.replace(" ", "+")
+
+    service_url = f"https://maps.googleapis.com/maps/api/geocode/json"
+    service_url = f"?address={address}&key={api_key}"
+
+    response = requests.get(service_url)
+    if response.status_code == 200:
+        data = response.json()
+        location = data['results'][0]['geometry']['location']
+        return (location['lat'], location['lng'])
 
 
 def distance_addresses(origin_address="", destination_address="", coordinates_origin=(-10000, -10000), coordinates_destination=(-1000000, -100000)) -> str:
