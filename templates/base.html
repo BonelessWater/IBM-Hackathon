@@ -5,58 +5,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Disaster Prevention Hub</title>
+    <title>ByteStorm</title>
+
+    <!-- Materialize CSS -->
     <link rel="stylesheet" href="{% static 'css/materialize.min.css' %}">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Jersey 10 Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
+
     <script src="{% static 'js/materialize.min.js' %}" defer></script>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="{% static 'img/favicon.webp' %}">
+
     <style>
-        .chat-container {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 300px;
-            max-height: 400px;
-            overflow-y: auto;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            background-color: white;
+        :root {
+            --primary-color: #81d4fa;  /* Light Blue */
+            --dark-color: #01579b;  /* Deep Blue */
+            --light-background: #f9f9f9;  /* Light White Background */
+            --white-text: white;
+            --black-text: black;
         }
 
-        .chat-header {
-            background-color: #1565c0;
-            padding: 10px;
-            color: white;
-            border-radius: 10px 10px 0 0;
-        }
-
-        .chat-messages {
-            padding: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .chat-input-container {
+        /* General Styles */
+        body {
+            background-color: var(--light-background);
+            color: var(--black-text);
             display: flex;
-            padding: 10px;
-            border-top: 1px solid #e0e0e0;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        .chat-input {
-            flex: 1;
-            margin-right: 5px;
+        /* Navbar */
+        nav {
+            background-color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+
+        /* Logo and Website Title Styling */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-container img {
+            height: 60px;
+            margin-top: 0px; /* Fine-tune vertical alignment */
+        }
+
+        .logo-container a {
+            font-family: 'Jersey 10', sans-serif;  /* Only here */
+            font-weight: 400;
+            font-size: 1.8rem;
+            color: var(--white-text);
+            text-decoration: none;
+        }
+
+        /* Right-aligned Navigation Links */
+        ul#nav-mobile {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+            margin: 0;
+        }
+
+        ul#nav-mobile li a {
+            color: var(--primary-color);  /* Light blue */
+            font-size: 1.2rem;
+            text-decoration: none;
+            font-family: 'Roboto', sans-serif; /* Default sans-serif for tabs */
+        }
+
+        ul#nav-mobile li a:hover {
+            color: var(--white-text); /* Change to white on hover */
+        }
+
+        /* Main Content */
+        main {
+            flex: 1; /* Push footer down */
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark-color);
+            color: var(--white-text);
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white-text);
+        }
+
+        .btn:hover {
+            background-color: var(--dark-color);
+        }
+
+        .card {
+            background-color: var(--primary-color);
         }
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav>
-        <div class="nav-wrapper blue">
-            <a href="#" class="brand-logo center">AI Disaster Hub</a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-                <li><a href="{% url 'home' %}">Home</a></li>
-                <li><a href="#">Prevention Tips</a></li>
-                <li><a href="#">Emergency Contacts</a></li>
-            </ul>
+        <!-- Left: Logo and Title -->
+        <div class="logo-container">
+            <img src="{% static 'img/favicon.webp' %}" alt="ByteStorm Logo">
+            <a href="{% url 'home' %}">ByteStorm</a>
         </div>
+
+        <!-- Right: Navigation Links and Logout Button -->
+        <ul id="nav-mobile">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="#">Prevention Tips</a></li>
+            <li><a href="#">Emergency Contacts</a></li>
+            <li>
+                <a href="{% url 'logout' %}" class="btn-flat white-text">
+                    <i class="material-icons left">exit_to_app</i>Logout
+                </a>
+            </li>
+        </ul>
     </nav>
 
     <!-- Main Content -->
@@ -65,44 +146,10 @@
         {% endblock %}
     </main>
 
-    <!-- Chatbot UI -->
-    <div class="chat-container" id="chat-container">
-        <div class="chat-header">
-            <h5 class="center-align">Chat with AI</h5>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-            <p class="flow-text center-align">How can I assist you?</p>
-        </div>
-        <div class="chat-input-container">
-            <input type="text" id="user-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
-            <button id="send-btn" class="btn waves-effect waves-light blue">
-                <i class="material-icons">send</i>
-            </button>
-        </div>
-    </div>
-
     <!-- Footer -->
-    <footer class="page-footer blue darken-2">
+    <footer class="page-footer">
         <div class="container">
-            <div class="row">
-                <div class="col l6 s12">
-                    <h5 class="white-text">AI Disaster Prevention Hub</h5>
-                    <p class="grey-text text-lighten-4">Providing reliable information and resources during natural disasters.</p>
-                </div>
-                <div class="col l4 offset-l2 s12">
-                    <h5 class="white-text">Links</h5>
-                    <ul>
-                        <li><a class="grey-text text-lighten-3" href="#">Resources</a></li>
-                        <li><a class="grey-text text-lighten-3" href="#">Support</a></li>
-                        <li><a class="grey-text text-lighten-3" href="#">Contact Us</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="footer-copyright">
-            <div class="container">
-                © 2024 AI Disaster Hub
-            </div>
+            <p>&copy; 2024 ByteStorm - Providing reliable information during natural disasters.</p>
         </div>
     </footer>
 

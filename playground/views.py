@@ -20,6 +20,7 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY')
 PROJECT_ID = os.getenv('PROJECT_ID')
 
+"""
 # Initialize Watson ModelInference
 credentials = Credentials(
     url="https://us-south.ml.cloud.ibm.com",
@@ -33,6 +34,7 @@ model = ModelInference(
     project_id=PROJECT_ID,
     params={"max_new_tokens": 50},
 )
+"""
 
 # Decorator to enforce login
 def login_required(view_func):
@@ -54,6 +56,10 @@ def login_required(view_func):
 
 @login_required
 def home(request):
+    logger.info(API_KEY)
+    logger.info(API_KEY)
+    logger.info(API_KEY)
+    
     logger.info("User %s accessed the home page", request.session.get('user_id'))
     return render(request, 'home.html')
 
@@ -127,6 +133,7 @@ def logout(request):
     logger.info("User %s logged out", user_id)
     return redirect('login')
 
+"""
 @csrf_exempt
 def chatbot_message(request):
 
@@ -157,3 +164,5 @@ def chatbot_message(request):
             return JsonResponse({'error': 'An error occurred while communicating with Watson.'}, status=500)
 
     return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+"""
