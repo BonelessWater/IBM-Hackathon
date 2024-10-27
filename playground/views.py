@@ -1,42 +1,55 @@
-import logging
-from django.db import IntegrityError
-from django.conf import settings
-from django.contrib.auth.hashers import make_password, check_password
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from .models import User
 import os
+import json
+import logging
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from dotenv import load_dotenv
+from ibm_watsonx_ai import APIClient, Credentials
+from ibm_watsonx_ai.foundation_models import ModelInference
 from django.conf import settings
-from django.http import JsonResponse
-from django.http import JsonResponse
-from ibm_watson import AssistantV2
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+from .models import User
+from django.contrib.auth.hashers import make_password, check_password
+from django.db import IntegrityError
 
+# Initialize logger
 logger = logging.getLogger(__name__)
 
-# Control whether login is enforced during debug mode
-ENFORCE_LOGIN_DEBUG = True
+# Load environment variables
+load_dotenv()
+API_KEY = os.getenv('API_KEY')
+PROJECT_ID = os.getenv('PROJECT_ID')
 
+# Initialize Watson ModelInference
+credentials = Credentials(
+    url="https://us-south.ml.cloud.ibm.com",
+    api_key=API_KEY,
+)
+client = APIClient(credentials)
+
+model = ModelInference(
+    model_id="ibm/granite-13b-chat-v2",
+    api_client=client,
+    project_id=PROJECT_ID,
+    params={"max_new_tokens": 50},
+)
+
+# Decorator to enforce login
 def login_required(view_func):
-    """Decorator to enforce login based on debug mode and settings."""
     def wrapper(request, *args, **kwargs):
-        if not settings.DEBUG or ENFORCE_LOGIN_DEBUG:
-            if not request.session.get('user_id'):
-                logger.info("Unauthorized access attempt to %s", request.path)
-                return redirect('login')
+        if not settings.DEBUG or not request.session.get('user_id'):
+            logger.info("Unauthorized access attempt to %s", request.path)
+            return redirect('login')
         return view_func(request, *args, **kwargs)
     return wrapper
 
 @login_required
 def home(request):
-    """Home view, accessible only when logged in."""
     logger.info("User %s accessed the home page", request.session.get('user_id'))
     return render(request, 'home.html')
 
 def signup(request):
-    """Handles user signup."""
-    error_message = None  # Initialize error message
-
+    error_message = None
     if request.method == 'POST':
         username = request.POST['username'].strip()
         password = make_password(request.POST['password'])
@@ -46,9 +59,8 @@ def signup(request):
         emergency_contact_name = request.POST['emergency_contact_name'].strip()
         emergency_contact_phone = request.POST['emergency_contact_phone'].strip()
 
-        # Check if the username exists (case-insensitive)
         if User.objects.filter(username__iexact=username).exists():
-            error_message = f"Username '{username}' is already taken. Please choose a different one."
+            error_message = f"Username '{username}' is already taken."
             logger.warning("Signup failed: username %s already exists", username)
         else:
             try:
@@ -63,58 +75,65 @@ def signup(request):
                 )
                 logger.info("New user %s signed up", username)
                 return redirect('login')
-
             except IntegrityError as e:
-                error_message = "An error occurred during signup. Please try again."
+                error_message = "An error occurred during signup."
                 logger.error("Signup failed due to IntegrityError: %s", str(e))
 
     return render(request, 'signup.html', {'error_message': error_message})
 
 def login(request):
-    """Handles user login."""
     error_message = None
-
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
 
         user = User.objects.filter(username=username).first()
         if user and check_password(password, user.password):
-            request.session['user_id'] = user.id  # Track user session
+            request.session['user_id'] = user.id
             logger.info("User %s logged in", username)
-            return redirect('/')  # Redirect to the base URL
+            return redirect('home')
         else:
-            error_message = "Invalid username or password. Please try again."
+            error_message = "Invalid username or password."
             logger.warning("Failed login attempt for username %s", username)
 
     return render(request, 'login.html', {'error_message': error_message})
 
 def logout(request):
-    """Handles user logout."""
     user_id = request.session.get('user_id')
-    request.session.flush()  # Clear the session
+    request.session.flush()
     logger.info("User %s logged out", user_id)
     return redirect('login')
 
+@csrf_exempt
+def chatbot_message(request):
+    """Handle chatbot message exchange."""
+    if request.method == 'POST':
+        try:
+            user_message = json.loads(request.body).get('message', '')
 
-def process_audio(request):
-    """Process the uploaded audio file and delete it after processing."""
-    if request.method == 'POST' and request.FILES.get('audio'):
-        audio_file = request.FILES['audio']
+            # Create the prompt for Watson
+            prompt = (
+    f"You are an expert disaster prevention assistant. Your role is to provide precise, actionable advice "
+    f"for individuals facing natural disasters or emergencies. If the user needs emergency help, respond with "
+    f"calm and helpful guidance. If the user seeks prevention tips, provide them with practical suggestions. "
+    f"Use concise language and avoid unnecessary details. Now, respond to the following message:\n\n{user_message}"
+)
 
-        # Save the uploaded audio file temporarily
-        temp_path = os.path.join(settings.MEDIA_ROOT, audio_file.name)
-        with open(temp_path, 'wb+') as destination:
-            for chunk in audio_file.chunks():
-                destination.write(chunk)
+            # Get Watson's generated response
+            response = model.generate_text(prompt)
 
-        # Process the file (for now, just print success and return True)
-        print("Audio file processed successfully!")
+            # Ensure response is a string; return it directly
+            if isinstance(response, str):
+                watson_reply = response
+            else:
+                watson_reply = response.get('generated_text', "I'm not sure how to respond.")
 
-        # Delete the file after processing
-        os.remove(temp_path)
-        print("Temporary audio file deleted.")
+            return JsonResponse({'response': watson_reply})
+        except Exception as e:
+            logger.error(f"Error in chatbot_message: {e}")
+            return JsonResponse({'error': 'An error occurred while communicating with Watson.'}, status=500)
 
-        return JsonResponse({'success': True, 'message': 'Audio processed successfully'})
+    return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
-    return JsonResponse({'success': False, 'message': 'No audio file uploaded'}, status=400)
+
+
