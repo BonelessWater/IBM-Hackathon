@@ -9,3 +9,4 @@ requests==2.32.3
 whitenoise==6.6.0
 nltk
 pydub==0.25.1
+mailslurp-client
