@@ -1,3 +1,5 @@
 venv
 tenv
 .env
+credentials.json
+token.json

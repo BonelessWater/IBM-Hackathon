@@ -5,33 +5,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Disaster Prevention Hub</title>
+    <title>ByteStorm</title>
+
+    <!-- Materialize CSS -->
     <link rel="stylesheet" href="{% static 'css/materialize.min.css' %}">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Jersey 10 Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap" rel="stylesheet">
+
     <script src="{% static 'js/materialize.min.js' %}" defer></script>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/webp" href="{% static 'img/favicon.webp' %}">
+
     <style>
+        :root {
+            --primary-color: #81d4fa;  /* Light Blue */
+            --dark-color: #01579b;  /* Deep Blue */
+            --light-background: #f9f9f9;  /* Light White Background */
+            --white-text: white;
+            --black-text: black;
+        }
+
+        /* General Styles */
+        body {
+            background-color: var(--light-background);
+            color: var(--black-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Navbar */
+        nav {
+            background-color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-container img {
+            height: 60px;
+        }
+
+        .logo-container a {
+            font-family: 'Jersey 10', sans-serif;
+            font-weight: 400;
+            font-size: 1.8rem;
+            color: var(--white-text);
+            text-decoration: none;
+        }
+
+        ul#nav-mobile {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+            margin: 0;
+        }
+
+        ul#nav-mobile li a {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            text-decoration: none;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        ul#nav-mobile li a:hover {
+            color: var(--white-text);
+        }
+
+        main {
+            flex: 1;
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: var(--white-text);
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white-text);
+        }
+
+        .btn:hover {
+            background-color: var(--dark-color);
+        }
+
+        .card {
+            background-color: var(--primary-color);
+        }
+
+        /* Chatbot UI */
         .chat-container {
             position: fixed;
-            bottom: 10px;
-            right: 10px;
+            bottom: 20px;
+            right: 20px;
             width: 300px;
-            max-height: 400px;
-            overflow-y: auto;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            background-color: var(--white-text);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             border-radius: 10px;
-            background-color: white;
+            overflow: hidden;
         }
 
         .chat-header {
-            background-color: #1565c0;
+            background-color: var(--dark-color);
             padding: 10px;
-            color: white;
-            border-radius: 10px 10px 0 0;
+            color: var(--white-text);
+            font-weight: bold;
         }
 
         .chat-messages {
             padding: 10px;
-            max-height: 300px;
+            height: 200px;
             overflow-y: auto;
+            background-color: #f1f1f1;
         }
 
         .chat-input-container {
@@ -42,21 +146,40 @@
 
         .chat-input {
             flex: 1;
-            margin-right: 5px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .chat-send-btn {
+            margin-left: 5px;
+            background-color: var(--primary-color);
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            color: var(--white-text);
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <!-- Navbar -->
     <nav>
-        <div class="nav-wrapper blue">
-            <a href="#" class="brand-logo center">AI Disaster Hub</a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-                <li><a href="{% url 'home' %}">Home</a></li>
-                <li><a href="#">Prevention Tips</a></li>
-                <li><a href="#">Emergency Contacts</a></li>
-            </ul>
+        <div class="logo-container">
+            <img src="{% static 'img/favicon.webp' %}" alt="ByteStorm Logo">
+            <a href="{% url 'home' %}">ByteStorm</a>
         </div>
+
+        <ul id="nav-mobile">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="#">Prevention Tips</a></li>
+            <li><a href="#">Emergency Contacts</a></li>
+            <li>
+                <a href="{% url 'logout' %}" class="btn-flat white-text">
+                    <i class="material-icons left">exit_to_app</i>Logout
+                </a>
+            </li>
+        </ul>
     </nav>
 
     <!-- Main Content -->
@@ -65,86 +188,66 @@
         {% endblock %}
     </main>
 
-    <!-- Chatbot UI -->
-    <div class="chat-container" id="chat-container">
-        <div class="chat-header">
-            <h5 class="center-align">Chat with AI</h5>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-            <p class="flow-text center-align">How can I assist you?</p>
-        </div>
+    <!-- Chatbot -->
+    <div class="chat-container">
+        <div class="chat-header">Chat with ByteBot</div>
+        <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input-container">
-            <input type="text" id="user-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
-            <button id="send-btn" class="btn waves-effect waves-light blue">
-                <i class="material-icons">send</i>
-            </button>
+            <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." />
+            <button class="chat-send-btn" id="chat-send-btn">Send</button>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="page-footer blue darken-2">
+    <footer>
         <div class="container">
-            <div class="row">
-                <div class="col l6 s12">
-                    <h5 class="white-text">AI Disaster Prevention Hub</h5>
-                    <p class="grey-text text-lighten-4">Providing reliable information and resources during natural disasters.</p>
-                </div>
-                <div class="col l4 offset-l2 s12">
-                    <h5 class="white-text">Links</h5>
-                    <ul>
-                        <li><a class="grey-text text-lighten-3" href="#">Resources</a></li>
-                        <li><a class="grey-text text-lighten-3" href="#">Support</a></li>
-                        <li><a class="grey-text text-lighten-3" href="#">Contact Us</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="footer-copyright">
-            <div class="container">
-                © 2024 AI Disaster Hub
-            </div>
+            <p>&copy; 2024 ByteStorm - Providing reliable information during natural disasters.</p>
         </div>
     </footer>
 
     <script>
-        const chatMessages = document.getElementById('chat-messages');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-
-        sendBtn.addEventListener('click', sendMessage);
-
-        function addMessage(sender, message) {
-            const messageElement = document.createElement('p');
-            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
-            chatMessages.appendChild(messageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
-        }
-
+        const messages = document.getElementById('chat-messages');
+        const input = document.getElementById('chat-input');
+        const sendButton = document.getElementById('chat-send-btn');
+    
+        sendButton.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    
         async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            addMessage('You', message);
-            userInput.value = '';
-
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
+    
+            addMessage('You', userMessage);
+            input.value = '';
+    
             try {
-                const response = await fetch('/chatbot/', {
+                const response = await fetch('/chatbot_message/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message }),
+                    body: JSON.stringify({ message: userMessage }),
                 });
-
+    
                 const data = await response.json();
                 if (data.response) {
-                    addMessage('Watson', data.response);
+                    addMessage('ByteBot', data.response);
                 } else {
-                    addMessage('Error', 'No response from Watson.');
+                    addMessage('ByteBot', "I'm not sure how to respond.");
                 }
             } catch (error) {
-                console.error('Error communicating with Watson:', error);
-                addMessage('Error', 'Failed to connect to the chatbot.');
+                console.error('Error communicating with ByteBot:', error);
+                addMessage('ByteBot', 'Failed to connect to the chatbot.');
             }
         }
+    
+        function addMessage(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${sender}: ${message}`;
+            messages.appendChild(messageElement);
+            messages.scrollTop = messages.scrollHeight;
+        }
     </script>
+    
 </body>
 </html>

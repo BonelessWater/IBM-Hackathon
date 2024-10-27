@@ -11,10 +11,11 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
-
-class AudioFile(models.Model):
-    audio = models.FileField(upload_to='audio/')
-    transcript = models.TextField(blank=True, null=True)
+    
+class EmailLog(models.Model):
+    email_address = models.EmailField()
+    email_body = models.TextField()
+    received_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.audio.name
+        return f"Email from {self.email_address} at {self.received_at}"
