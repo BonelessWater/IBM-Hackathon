@@ -30,15 +30,27 @@ def available_gas_stations(location="",latitude=-10000, longitude=-10000, zip=-1
     return stations
 
 
-def food_shelters(location="",latitude=-10000, longitude=-10000, zip=-10000):
-    # TODO
-    #api_key = os.getenv()
-    ...
 
-def hospitals(location="",latitude=-10000, longitude=-10000, zip=-10000):
-    # TODO
-    #api_key = os.getenv()
-    ...
+def hospitals(latitude, longitude):
+    location = f"{latitude}, {longitude}"
+    api_key = os.getenv("GOOGLE_PLACES_API_KEY")
+    place = "hospital"
+    radius = 5000  # in meters
+    service_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={location}&radius={radius}&type={place}&key={api_key}"
+
+    response = requests.get(service_url)
+    if response.status_code == 200:
+        nearest_hospitals = []
+        data = response.json()
+        for result in data['results']:
+            hospital_name = result.get("name", "N/A")
+            hospital_latitude = result['geometry']['location'].get("lat", "N/A")
+            hospital_longitude = result['geometry']['location'].get("lng", "N/A")
+            hospital_open = result["opening_hours"].get("open_now", "N/A")
+            hospital = {"name": hospital_name, "latitude": hospital_latitude, "longitude": hospital_longitude, "open": hospital_open}
+            nearest_hospitals.append(hospital)
+        return nearest_hospitals
+    return None
 
 def shelters(city="", state="", latitude=-100000, longitude=-100000, zip=-10000, wheelchair_accesible=False):
     # doesnt need an api key
@@ -64,7 +76,7 @@ def shelters(city="", state="", latitude=-100000, longitude=-100000, zip=-10000,
     if wheelchair_accesible:
         service_url += f"{q_and}wheelchair_accesible{q_sep}'YES'"
     
-    service_url += f"{q_and}shelter_status{q_sep}'OPEN'&outFields=*&returnGeometry=false&outSR=4326&f=json"
+    service_url += f"{q_and}shelter_status{q_sep}'OPEN'&outFields=*&outSR=4326&f=json"
     
 
     response = requests.get(service_url)
@@ -97,3 +109,4 @@ def location_to_latlong(address, city):
     os.getenv()
 
 '''
+shelters(zip=33823)
